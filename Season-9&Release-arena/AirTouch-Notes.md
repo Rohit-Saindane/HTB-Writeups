@@ -1,7 +1,7 @@
 ---
 title: AirTouch
 os: Linux
-difficulty: Insane
+difficulty: Medium
 tags:
   - SNMP
   - WPA2-Enterprise
@@ -13,12 +13,12 @@ tags:
 date: 2026-01-18
 ---
 
-# 🛡️ HTB - AirTouch (Insane)
+# 🛡️ HTB - AirTouch (Medium)
 
 <p align="center">
   <img src="https://img.shields.io/badge/Platform-HackTheBox-green?style=for-the-badge&logo=hackthebox" alt="HackTheBox" />
   <img src="https://img.shields.io/badge/OS-Linux-orange?style=for-the-badge&logo=linux" alt="OS Linux" />
-  <img src="https://img.shields.io/badge/Difficulty-Insane-red?style=for-the-badge" alt="Insane Difficulty" />
+ <img src="https://img.shields.io/badge/Difficulty-Medium-yellow?style=for-the-badge" alt="Medium Difficulty" />
 </p>
 
 ---
