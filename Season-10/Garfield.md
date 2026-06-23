@@ -548,7 +548,7 @@ Mode                LastWriteTime         Length Name
 ```text
 	l.wilson_adm
 	     ↓
-          WriteAccountRestrictions
+ WriteAccountRestrictions
 	     ↓
     RODC garfield.htb
 ```
@@ -556,7 +556,7 @@ Mode                LastWriteTime         Length Name
 ```text
 	l.wilson_adm
 	     ↓
-                  MemberOf
+      MemberOf
 	     ↓
      Tier1.garfield.htb
 	     ↓
