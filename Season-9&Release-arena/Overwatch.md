@@ -18,7 +18,7 @@ date: 2026-01-26
 <p align="center">
   <img src="https://img.shields.io/badge/Platform-HackTheBox-green?style=for-the-badge&logo=hackthebox" alt="HackTheBox" />
   <img src="https://img.shields.io/badge/OS-Windows-blue?style=for-the-badge&logo=windows" alt="OS Windows" />
-  <img src="https://img.shields.io/badge/Difficulty-Medium-yellow?style=for-the-badge" alt="Medium Difficulty" />
+  <img src="https://img.shields.io/badge/Difficulty-Medium-orange?style=for-the-badge" alt="Medium Difficulty" />
 </p>
 
 ---
