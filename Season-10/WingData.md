@@ -74,16 +74,13 @@ Nmap done: 1 IP address (1 host up) scanned in 41.12 seconds
 - 🔍 *The Nmap scan identifies SSH on port 22 and Apache HTTP server on port 80.*
 - 🔍 *We map the host `wingdata.htb` inside our `/etc/hosts` file.*
 
----
-
-## Step 2 - Enumeration
 
 - 🔍 *Browsing to the HTTP service on port 80 redirects us to `http://wingdata.htb/` which hosts a Wing FTP Server administration portal.*
 - 🔍 *The Wing FTP Server software version is identified as v7.4.3, which contains critical security vulnerabilities.*
 
 ---
 
-## Step 3 - Initial Foothold
+## Step 2 - Initial Foothold
 
 - 🔍 *We find that Wing FTP Server versions prior to v7.4.4 are vulnerable to an unauthenticated Remote Code Execution (RCE) vulnerability (CVE-2025-47812).*
 
@@ -109,7 +106,7 @@ ssh wacky@wingdata.htb
 
 ---
 
-## Step 4 - Privilege Escalation
+## Step 3 - Privilege Escalation
 
 - 🔍 *We check our sudo privileges as user `wacky`:*
 
