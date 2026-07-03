@@ -153,13 +153,14 @@ SMB         10.129.7.251    445    DC01             [*] Enumerated 7 local users
 - 🔍 *We check BloodHound and notice that the `Pre-Windows 2000 Compatible Access` group contains the pre-created computer accounts `EXCH01$` and `MS01$`. Since `Domain Users` belongs to this group, we can query TGT tickets for these machine accounts:*
 
 ```text
-Now ---->  Pre windows 2000 compatible  And Domain Users
+Now ---->
+Pre windows 2000 compatible  And Domain Users
 		^
 		|
-	    member of 
+     member of 
 		^
 		|
-	  EXCH01 AND MS01 
+  EXCH01 AND MS01 
 ```
 
 - 🔍 *As we know user `pentest` is also a member of Domain Users and so do `EXCH01` and `MS01`, we can ask for TGT for both of them:*
@@ -187,17 +188,17 @@ PRE2K       10.129.11.99    389    DC01             [+] Successfully obtained TG
 ```text
 		MS01
 		 ↓
-	      member of
+      member of
 		 ↓
 	Domain Secure Servers
 		 ↓
-	      readGMSA
+      readGMSA
 		 ↓
-	     GMSA_ADFS
+     GMSA_ADFS
 		 ↓
-	     member of
+      member of
 		 ↓
-	 Remote Management 
+   Remote Management 
 ```
 
 - 🔍 *This is the clear path to get the initial foothold: we can read the NTLM hashes for `GMSA_ADFS`, and then we can use it to get the evil-winrm shell:*
@@ -611,11 +612,11 @@ Mode                LastWriteTime         Length Name
    	    ↓
 	 memberOf
 	    ↓
-       IT@Pirate.htb
+   IT@Pirate.htb
 	    ↓
 	 writeSPN
 	    ↓
-	DC01.Pirate.htb
+  DC01.Pirate.htb
 ```
 
 - 🔍 *This should be the clear attack path towards gaining access to the domain.*
